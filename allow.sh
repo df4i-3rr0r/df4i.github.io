@@ -1,7 +1,6 @@
 #Test
 export DEBIAN_FRONTEND=noninteractive
-MYIP=$(wget -qO- ipinfo.io/ip);
-MYIP1="s/xxxxxxxxx/$MYIP/g";
+MYIP1=$(wget -qO- ipv4.icanhazip.com);
 NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
 source /etc/os-release
 ver=$VERSION_ID
