@@ -1,31 +1,34 @@
 #!/bin/bash
 
-## Recode By DnNet
+## Refine By DnNet
 
+MYIP=$(wget -qO- ipv4.icanhazip.com);
+
+export MYIP='$MYIP'
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
 export tmpWORD='HG095pjS3Ighc77sLX'
 export tmpMirror=''
-export ipAddr=''
+export ipAddr='$MYIP'
 export ipMask='255.255.255.0'
 export ipGate=''
 export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect=''
+export interfaceSelect='eth0'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
-export setNet='0'
+export setNet='1'
 export setRDP='0'
-export setIPv6='No'
+export setIPv6='1'
 export isMirror='0'
 export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='eth0'
+export setInterfaceName='0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -78,7 +81,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-addr)
       shift
-      ipAddr="$1"
+      ipAddr="$MYIP"
       shift
       ;;
     --ip-mask)
@@ -98,7 +101,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='eth0'
+      setInterfaceName='1'
       ;;
     --loader)
       shift
@@ -112,13 +115,13 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='No'
-      WinRemote="No"
+      setRDP='0'
+      WinRemote="$1"
       shift
       ;;
     -cmd)
       shift
-      setCMD="net.ifnames=0 biosdevname=0"
+      setCMD="$1"
       shift
       ;;
     -console)
@@ -137,7 +140,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='No'
+      setIPv6='1'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -303,7 +306,7 @@ if [ -z "$interface" ]; then
     dependence ip
     [ -n "$interface" ] || interface=`getInterface`
 fi
-IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
+IPv4="$MYIP"; MASK="255.255.255.0"; GATE="$ipGate";
 
 [ -n "$IPv4" ] && [ -n "$MASK" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
   echo -ne '\nError: Invalid network config\n\n'
@@ -312,9 +315,9 @@ IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
 }
 
 if [[ "$Relese" == 'Debian' ]] || [[ "$Relese" == 'Ubuntu' ]]; then
-  dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
+  dependence sudo,wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
 elif [[ "$Relese" == 'CentOS' ]]; then
-  dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,file,xz;
+  dependence sudo,wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,file,xz;
 fi
 [ -n "$tmpWORD" ] && dependence openssl
 [[ -n "$tmpWORD" ]] && myPASSWORD="$(openssl passwd -1 "$tmpWORD")";
@@ -433,7 +436,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="auto"
+    interfaceSelect="eth0"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
@@ -546,7 +549,6 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -608,20 +610,20 @@ $UNCOMP < /tmp/$NewIMG | cpio --extract --verbose --make-directories --no-absolu
 
 if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
 cat >/tmp/boot/preseed.cfg<<EOF
-d-i debian-installer/locale string en_US
+d-i debian-installer/locale string en_US.UTF-8
 d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select $interfaceSelect
+d-i netcfg/choose_interface select eth0
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
-d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string $MASK
+d-i netcfg/get_ipaddress string $MYIP
+d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string $GATE
-d-i netcfg/get_nameservers string $ipDNS
+d-i netcfg/get_nameservers string "1.1.1.1 1.0.0.1"
 d-i netcfg/no_default_route boolean true
 d-i netcfg/confirm_static boolean true
 
@@ -639,8 +641,8 @@ d-i user-setup/allow-password-weak boolean true
 d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
-d-i time/zone string Asia/Singapore
-d-i clock-setup/ntp boolean false
+d-i time/zone string Asia/Kuala_Lumpur
+d-i clock-setup/ntp boolean true
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -654,7 +656,7 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select uuid
+d-i partman/mount_style select traditional
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
@@ -670,7 +672,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl
+d-i pkgsel/exclude string ufw bind9 watchdog ModemManager rsync
+d-i pkgsel/include string sudo htop iptables openssh-server net-tools wget curl
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
@@ -715,7 +718,7 @@ WinRDP(){
 }
   echo -ne "\0100ECHO\0040OFF\r\n\r\ncd\0056\0076\0045WINDIR\0045\0134GetAdmin\r\nif\0040exist\0040\0045WINDIR\0045\0134GetAdmin\0040\0050del\0040\0057f\0040\0057q\0040\0042\0045WINDIR\0045\0134GetAdmin\0042\0051\0040else\0040\0050\r\necho\0040CreateObject\0136\0050\0042Shell\0056Application\0042\0136\0051\0056ShellExecute\0040\0042\0045\0176s0\0042\0054\0040\0042\0045\0052\0042\0054\0040\0042\0042\0054\0040\0042runas\0042\0054\00401\0040\0076\0076\0040\0042\0045temp\0045\0134Admin\0056vbs\0042\r\n\0042\0045temp\0045\0134Admin\0056vbs\0042\r\ndel\0040\0057f\0040\0057q\0040\0042\0045temp\0045\0134Admin\0056vbs\0042\r\nexit\0040\0057b\00402\0051\r\n\r\n" >'/tmp/boot/net.tmp';
   [[ "$setNet" == '1' ]] && WinNoDHCP;
-  [[ "$setNet" == '0' ]] && [[ "$AutoNet" == '0' ]] && WinNoDHCP;
+  [[ "$setNet" == '0' ]] && [[ "$AutoNet" == '1' ]] && WinNoDHCP;
   [[ "$setRDP" == '1' ]] && [[ -n "$WinRemote" ]] && WinRDP
   echo -ne "ECHO\0040SELECT\0040VOLUME\0075\0045\0045SystemDrive\0045\0045\0040\0076\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nECHO\0040EXTEND\0040\0076\0076\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nSTART\0040/WAIT\0040DISKPART\0040\0057S\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nDEL\0040\0057f\0040\0057q\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\n\r\n" >>'/tmp/boot/net.tmp';
   echo -ne "cd\0040\0057d\0040\0042\0045ProgramData\0045\0057Microsoft\0057Windows\0057Start\0040Menu\0057Programs\0057Startup\0042\r\ndel\0040\0057f\0040\0057q\0040net\0056bat\r\n\r\n\r\n" >>'/tmp/boot/net.tmp';
@@ -737,7 +740,7 @@ url --url="$LinuxMirror/$DIST/os/$VER/"
 rootpw --iscrypted $myPASSWORD
 auth --useshadow --passalgo=sha512
 firstboot --disable
-lang en_US
+lang en_US.UTF-8
 keyboard us
 selinux --disabled
 logging --level=info
@@ -746,9 +749,9 @@ text
 unsupported_hardware
 vnc
 skipx
-timezone --isUtc Asia/Hong_Kong
+timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
+network --bootproto=static --ip=$MYIP --netmask=255.255.255.0 --gateway=$GATE --nameserver="1.1.1.1 1.0.0.1" --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
