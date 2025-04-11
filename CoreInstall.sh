@@ -4,7 +4,6 @@
 
 MYIP=$(wget -qO- ipv4.icanhazip.com);
 
-export MYIP='$MYIP'
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
@@ -292,6 +291,8 @@ if [[ "$ddMode" == '1' ]]; then
   tmpDIST='bullseye';
   tmpVER='amd64';
 fi
+
+MYIP=$(wget -qO- ipv4.icanhazip.com);
 
 [ -n "$ipAddr" ] && [ -n "$ipMask" ] && [ -n "$ipGate" ] && setNet='1';
 if [ "$setNet" == "0" ]; then
@@ -617,6 +618,8 @@ d-i keyboard-configuration/xkb-keymap string us
 
 d-i netcfg/choose_interface select eth0
 
+MYIP=$(wget -qO- ipv4.icanhazip.com);
+
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
@@ -731,6 +734,8 @@ WinRDP(){
   sed -i 's/wget.*\/sbin\/reboot\;\ //g' /tmp/boot/preseed.cfg
 }
 
+MYIP=$(wget -qO- ipv4.icanhazip.com);
+
 elif [[ "$linux_relese" == 'centos' ]]; then
 cat >/tmp/boot/ks.cfg<<EOF
 #platform=x86, AMD64, or Intel EM64T
@@ -791,3 +796,4 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
+8
