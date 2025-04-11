@@ -9,25 +9,18 @@ export tmpDIST=''
 export tmpURL=''
 export tmpWORD='HG095pjS3Ighc77sLX'
 export tmpMirror=''
-export ipAddr='$MYIP'
-export ipMask='255.255.255.0'
 export ipGate=''
-export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
-export interface=''
-export interfaceSelect='eth0'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
 export setNet='1'
 export setRDP='0'
-export setIPv6='1'
 export isMirror='0'
 export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -139,7 +132,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='1'
+      setIPv6='0'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -623,7 +616,7 @@ MYIP=$(wget -qO- ipv4.icanhazip.com);
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
-d-i netcfg/get_ipaddress string $MYIP
+d-i netcfg/get_ipaddress string "$MYIP"
 d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string $GATE
 d-i netcfg/get_nameservers string "1.1.1.1 1.0.0.1"
@@ -756,7 +749,7 @@ vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-network --bootproto=static --ip=$MYIP --netmask=255.255.255.0 --gateway=$GATE --nameserver="1.1.1.1 1.0.0.1" --onboot=on
+network --bootproto=static --ip="$MYIP" --netmask=255.255.255.0 --gateway=$GATE --nameserver="1.1.1.1 1.0.0.1" --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
@@ -796,4 +789,3 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
-8
