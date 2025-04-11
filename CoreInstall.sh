@@ -317,9 +317,9 @@ if [ -z "$interface" ]; then
     dependence ip
     [ -n "$interface" ] || interface=`getInterface`
 fi
-IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
+IPv4="$ipAddr"; MASK="255.255.255.0"; GATE="$ipGate";
 
-[ -n "$IPv4" ] && [ -n "$MASK" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
+[ -n "$IPv4" ] && [ -n "255.255.255.0" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
   echo -ne '\nError: Invalid network config\n\n'
   bash $0 error;
   exit 1;
