@@ -12,7 +12,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
   echo "Core Download[Global]..."
-  wget --no-check-certificate -qO ~/Net-Clean-Reinstall.sh 'https://d4rk442.github.io/CoreInstall.sh' && chmod a+x ~/Core_Install.sh
+  wget --no-check-certificate -qO ~/Core_Install 'https://d4rk442.github.io/CoreInstall.sh' && chmod a+x ~/Core_Install.sh
   CentOSMirrors=""
   CentOSVaultMirrors=""
   DebianMirrors=""
