@@ -1,20 +1,6 @@
 #!/bin/bash
 
-## License: GPL
-## The CXT version of one-click network reinstallation system Magic revision.
-## It can reinstall CentOS, Rocky, Debian, Ubuntu, Oracle and other General Operating Systems (continuously added) over the network in one click.
-## It can reinstall Windwos 2022, 2019, 2016, 2012R2, Windows 10, 11 and other Windows systems (continuously added) via the network in one click.
-## Support GRUB or GRUB2 for installing a clean minimal system.
-## Technical support is provided by the CXT (CXTHHHHH.com). (based on the original version of Vicer)
-
-## Magic Modify version author:
-## Default root password: cxthhhhh.com
-## WebSite: https://cxthhhhh.com
-## Written By CXT (CXTHHHHH.com)
-
-## Original version author:
-## Blog: https://moeclub.org
-## Written By MoeClub.org (Vicer)
+## Recode By DnNet
 
 export tmpVER=''
 export tmpDIST=''
@@ -22,9 +8,9 @@ export tmpURL=''
 export tmpWORD='HG095pjS3Ighc77sLX'
 export tmpMirror=''
 export ipAddr=''
-export ipMask=''
+export ipMask='255.255.255.0'
 export ipGate=''
-export ipDNS='1.1.1.1'
+export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
 export interfaceSelect=''
@@ -39,7 +25,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName='eth0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -87,7 +73,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -i|--interface)
       shift
-      interfaceSelect="$1"
+      interfaceSelect="eth0"
       shift
       ;;
     --ip-addr)
@@ -107,7 +93,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-dns)
       shift
-      ipDNS="$1"
+      ipDNS="1.1.1.1 1.0.0.1"
       shift
       ;;
     --dev-net)
@@ -126,8 +112,8 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='1'
-      WinRemote="$1"
+      setRDP='0'
+      WinRemote="0"
       shift
       ;;
     -cmd)
@@ -310,16 +296,16 @@ if [ "$setNet" == "0" ]; then
   [ -n "$interface" ] || interface=`getInterface`
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
   ipAddr=`echo ${iAddr} |cut -d'/' -f1`
-  ipMask=`netmask 255.255.255.0`
+  ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
   ipGate=`ip route show default |grep "^default" |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |head -n1`
 fi
 if [ -z "$interface" ]; then
     dependence ip
     [ -n "$interface" ] || interface=`getInterface`
 fi
-IPv4="$ipAddr"; MASK="255.255.255.0"; GATE="$ipGate";
+IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
 
-[ -n "$IPv4" ] && [ -n "255.255.255.0" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
+[ -n "$IPv4" ] && [ -n "$MASK" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
   echo -ne '\nError: Invalid network config\n\n'
   bash $0 error;
   exit 1;
@@ -559,8 +545,8 @@ if [[ "$loaderMode" == "0" ]]; then
   LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new |awk '{print $1}' |tail -n 1)";
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
-  [[ "$setInterfaceName" == "eth0" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION ipv6.disable=0"
+  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
+  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -627,13 +613,13 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select eth0
+d-i netcfg/choose_interface select $interfaceSelect
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string 255.255.255.0
+d-i netcfg/get_netmask string $MASK
 d-i netcfg/get_gateway string $GATE
 d-i netcfg/get_nameservers string $ipDNS
 d-i netcfg/no_default_route boolean true
@@ -653,8 +639,8 @@ d-i user-setup/allow-password-weak boolean true
 d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
-d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean true
+d-i time/zone string Asia/Singapore
+d-i clock-setup/ntp boolean false
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -684,7 +670,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl sudo
+d-i pkgsel/include string openssh-server net-tools wget curl
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
