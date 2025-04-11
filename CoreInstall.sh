@@ -112,7 +112,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='1'
+      setInterfaceName='eth0'
       ;;
     --loader)
       shift
@@ -151,7 +151,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='1'
+      setIPv6='0'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -304,7 +304,7 @@ if [[ "$ddMode" == '1' ]]; then
   tmpVER='amd64';
 fi
 
-[ -n "$ipAddr" ] && [ -n "$ipMask" ] && [ -n "$ipGate" ] && setNet='1';
+[ -n "$ipAddr" ] && [ -n "255.255.255" ] && [ -n "$ipGate" ] && setNet='1';
 if [ "$setNet" == "0" ]; then
   dependence ip
   [ -n "$interface" ] || interface=`getInterface`
