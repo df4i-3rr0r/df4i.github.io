@@ -19,7 +19,7 @@ export sshPORT='22'
 export ddMode='0'
 export setNet='0'
 export setRDP='0'
-export setIPv6='0'
+export setIPv6='No'
 export isMirror='0'
 export FindDists='0'
 export loaderMode='0'
@@ -112,13 +112,13 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='0'
-      WinRemote="0"
+      setRDP='No'
+      WinRemote="No"
       shift
       ;;
     -cmd)
       shift
-      setCMD="$1"
+      setCMD="net.ifnames=0 biosdevname=0"
       shift
       ;;
     -console)
@@ -137,7 +137,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='0'
+      setIPv6='No'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
