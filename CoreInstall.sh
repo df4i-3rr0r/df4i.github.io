@@ -19,7 +19,7 @@ export interfaceSelect='eth0'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
-export setNet='1'
+export setNet='0'
 export setRDP='0'
 export setIPv6='0'
 export isMirror='0'
@@ -27,7 +27,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName=''
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -100,7 +100,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='1'
+      setInterfaceName='$1'
       ;;
     --loader)
       shift
@@ -139,7 +139,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='1'
+      setIPv6='0'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -545,7 +545,7 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION"
+  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
