@@ -100,7 +100,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='$1'
+      setInterfaceName='eth0'
       ;;
     --loader)
       shift
