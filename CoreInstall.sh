@@ -1,21 +1,33 @@
 #!/bin/bash
 
-## Remode By DnNet
+## License: GPL
+## The CXT version of one-click network reinstallation system Magic revision.
+## It can reinstall CentOS, Rocky, Debian, Ubuntu, Oracle and other General Operating Systems (continuously added) over the network in one click.
+## It can reinstall Windwos 2022, 2019, 2016, 2012R2, Windows 10, 11 and other Windows systems (continuously added) via the network in one click.
+## Support GRUB or GRUB2 for installing a clean minimal system.
+## Technical support is provided by the CXT (CXTHHHHH.com). (based on the original version of Vicer)
 
-MYIP=$(wget -qO- ipv4.icanhazip.com);
+## Magic Modify version author:
+## Default root password: cxthhhhh.com
+## WebSite: https://cxthhhhh.com
+## Written By CXT (CXTHHHHH.com)
+
+## Original version author:
+## Blog: https://moeclub.org
+## Written By MoeClub.org (Vicer)
 
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
 export tmpWORD='HG095pjS3Ighc77sLX'
 export tmpMirror=''
-export ipAddr='$MYIP'
-export ipMask='255.255.255.0'
+export ipAddr=''
+export ipMask=''
 export ipGate=''
-export ipDNS='1.1.1.1 1.0.0.1.1'
+export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect='eth0'
+export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
@@ -27,7 +39,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='eth0'
+export setInterfaceName='0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -75,32 +87,32 @@ while [[ $# -ge 1 ]]; do
       ;;
     -i|--interface)
       shift
-      interfaceSelect="eth0"
+      interfaceSelect="$1"
       shift
       ;;
     --ip-addr)
       shift
-      ipAddr="$MYIP"
+      ipAddr="$1"
       shift
       ;;
     --ip-mask)
       shift
-      ipMask="255.255.255.0"
+      ipMask="$1"
       shift
       ;;
     --ip-gate)
       shift
-      ipGate="$GATE"
+      ipGate="$1"
       shift
       ;;
     --ip-dns)
       shift
-      ipDNS="1.1.1.1 1.0.0.1"
+      ipDNS="$1"
       shift
       ;;
     --dev-net)
       shift
-      setInterfaceName='eth0'
+      setInterfaceName='1'
       ;;
     --loader)
       shift
@@ -114,7 +126,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='0'
+      setRDP='1'
       WinRemote="$1"
       shift
       ;;
@@ -134,7 +146,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -port)
       shift
-      sshPORT="22"
+      sshPORT="$1"
       shift
       ;;
     --noipv6)
@@ -227,6 +239,7 @@ function netmask() {
 }
 
 function getInterface(){
+  interface=""
   Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
@@ -291,11 +304,13 @@ if [[ "$ddMode" == '1' ]]; then
   tmpVER='amd64';
 fi
 
-[ -n "$ipGate" ] && setNet='1';
-if [ "$setNet" == "1" ]; then
+[ -n "$ipAddr" ] && [ -n "$ipMask" ] && [ -n "$ipGate" ] && setNet='1';
+if [ "$setNet" == "0" ]; then
   dependence ip
   [ -n "$interface" ] || interface=`getInterface`
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
+  ipAddr=`echo ${iAddr} |cut -d'/' -f1`
+  ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
   ipGate=`ip route show default |grep "^default" |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |head -n1`
 fi
 if [ -z "$interface" ]; then
@@ -432,7 +447,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="eth0"
+    interfaceSelect="auto"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
@@ -653,7 +668,7 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select uuid
+d-i partman/mount_style select traditional
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
@@ -713,9 +728,9 @@ WinRDP(){
   echo -ne "netsh\0040firewall\0040set\0040portopening\0040protocol\0075ALL\0040port\0075$WinRemote\0040name\0075RDP\0040mode\0075ENABLE\0040scope\0075ALL\0040profile\0075ALL\r\nnetsh\0040firewall\0040set\0040portopening\0040protocol\0075ALL\0040port\0075$WinRemote\0040name\0075RDP\0040mode\0075ENABLE\0040scope\0075ALL\0040profile\0075CURRENT\r\nreg\0040add\0040\0042HKLM\0134SYSTEM\0134CurrentControlSet\0134Control\0134Network\0134NewNetworkWindowOff\0042\0040\0057f\r\nreg\0040add\0040\0042HKLM\0134SYSTEM\0134CurrentControlSet\0134Control\0134Terminal\0040Server\0042\0040\0057v\0040fDenyTSConnections\0040\0057t\0040reg\0137dword\0040\0057d\00400\0040\0057f\r\nreg\0040add\0040\0042HKLM\0134SYSTEM\0134CurrentControlSet\0134Control\0134Terminal\0040Server\0134Wds\0134rdpwd\0134Tds\0134tcp\0042\0040\0057v\0040PortNumber\0040\0057t\0040reg\0137dword\0040\0057d\0040$WinRemote\0040\0057f\r\nreg\0040add\0040\0042HKLM\0134SYSTEM\0134CurrentControlSet\0134Control\0134Terminal\0040Server\0134WinStations\0134RDP\0055Tcp\0042\0040\0057v\0040PortNumber\0040\0057t\0040reg\0137dword\0040\0057d\0040$WinRemote\0040\0057f\r\nreg\0040add\0040\0042HKLM\0134SYSTEM\0134CurrentControlSet\0134Control\0134Terminal\0040Server\0134WinStations\0134RDP\0055Tcp\0042\0040\0057v\0040UserAuthentication\0040\0057t\0040reg\0137dword\0040\0057d\00400\0040\0057f\r\nFOR\0040\0057F\0040\0042tokens\00752\0040delims\0075\0072\0042\0040\0045\0045i\0040in\0040\0050\0047SC\0040QUERYEX\0040TermService\0040\0136\0174FINDSTR\0040\0057I\0040\0042PID\0042\0047\0051\0040do\0040TASKKILL\0040\0057F\0040\0057PID\0040\0045\0045i\r\nFOR\0040\0057F\0040\0042tokens\00752\0040delims\0075\0072\0042\0040\0045\0045i\0040in\0040\0050\0047SC\0040QUERYEX\0040UmRdpService\0040\0136\0174FINDSTR\0040\0057I\0040\0042PID\0042\0047\0051\0040do\0040TASKKILL\0040\0057F\0040\0057PID\0040\0045\0045i\r\nSC\0040START\0040TermService\r\n\r\n" >>'/tmp/boot/net.tmp';
 }
   echo -ne "\0100ECHO\0040OFF\r\n\r\ncd\0056\0076\0045WINDIR\0045\0134GetAdmin\r\nif\0040exist\0040\0045WINDIR\0045\0134GetAdmin\0040\0050del\0040\0057f\0040\0057q\0040\0042\0045WINDIR\0045\0134GetAdmin\0042\0051\0040else\0040\0050\r\necho\0040CreateObject\0136\0050\0042Shell\0056Application\0042\0136\0051\0056ShellExecute\0040\0042\0045\0176s0\0042\0054\0040\0042\0045\0052\0042\0054\0040\0042\0042\0054\0040\0042runas\0042\0054\00401\0040\0076\0076\0040\0042\0045temp\0045\0134Admin\0056vbs\0042\r\n\0042\0045temp\0045\0134Admin\0056vbs\0042\r\ndel\0040\0057f\0040\0057q\0040\0042\0045temp\0045\0134Admin\0056vbs\0042\r\nexit\0040\0057b\00402\0051\r\n\r\n" >'/tmp/boot/net.tmp';
-  [[ "$setNet" == '0' ]] && WinNoDHCP;
+  [[ "$setNet" == '1' ]] && WinNoDHCP;
   [[ "$setNet" == '0' ]] && [[ "$AutoNet" == '0' ]] && WinNoDHCP;
-  [[ "$setRDP" == '0' ]] && [[ -n "$WinRemote" ]] && WinRDP
+  [[ "$setRDP" == '1' ]] && [[ -n "$WinRemote" ]] && WinRDP
   echo -ne "ECHO\0040SELECT\0040VOLUME\0075\0045\0045SystemDrive\0045\0045\0040\0076\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nECHO\0040EXTEND\0040\0076\0076\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nSTART\0040/WAIT\0040DISKPART\0040\0057S\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\nDEL\0040\0057f\0040\0057q\0040\0042\0045SystemDrive\0045\0134diskpart\0056extend\0042\r\n\r\n" >>'/tmp/boot/net.tmp';
   echo -ne "cd\0040\0057d\0040\0042\0045ProgramData\0045\0057Microsoft\0057Windows\0057Start\0040Menu\0057Programs\0057Startup\0042\r\ndel\0040\0057f\0040\0057q\0040net\0056bat\r\n\r\n\r\n" >>'/tmp/boot/net.tmp';
   iconv -f 'UTF-8' -t 'GBK' '/tmp/boot/net.tmp' -o '/tmp/boot/net.bat'
