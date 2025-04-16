@@ -325,7 +325,7 @@ IPv4="$ipAddr"; MASK="255.255.255.0"; GATE="$ipGate";
 }
 
 if [[ "$Relese" == 'Debian' ]] || [[ "$Relese" == 'Ubuntu' ]]; then
-  dependence wget,awk,net-tools,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,zip,unzip,iptables,chrony,ntpdate,build-essential,bash-completion,sud,curl,apt-utils,socat,xz-utils,apt-transport-https,lsb-release,nano;
+  dependence wget,awk,net-tools,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
 elif [[ "$Relese" == 'CentOS' ]]; then
   dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,file,xz;
 fi
@@ -683,8 +683,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl
 d-i pkgsel/exclude string ufw firewalld watchdog modemmanager
+d-i pkgsel/include string openssh-server zip unzip iptables chrony ntpdate build-essential bash-completion sed apt-utils socat xz-utils apt-transport-https lsb-release nano wget curl nano
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
