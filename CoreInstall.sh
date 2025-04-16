@@ -683,8 +683,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/exclude string ufw firewalld watchdog modemmanager
 d-i pkgsel/include string openssh-server zip unzip iptables chrony ntpdate build-essential bash-completion sed apt-utils socat xz-utils apt-transport-https lsb-release nano wget curl nano net-tools
+d-i pkgsel/exclude string ufw firewalld watchdog modemmanager
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
