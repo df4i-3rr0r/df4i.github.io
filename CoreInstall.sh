@@ -632,7 +632,7 @@ d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string $MASK
+d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string $GATE
 d-i netcfg/get_nameservers string "1.1.1.1 1.0.0.1"
 d-i netcfg/no_default_route boolean true
