@@ -97,7 +97,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-mask)
       shift
-      ipMask=""
+      ipMask="$1"
       shift
       ;;
     --ip-gate)
@@ -239,7 +239,7 @@ function netmask() {
 }
 
 function getInterface(){
-  Interfaces="eth0"
+  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
@@ -446,7 +446,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="link"
+    interfaceSelect="auto"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
