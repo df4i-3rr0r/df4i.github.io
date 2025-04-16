@@ -19,7 +19,7 @@
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
-export tmpWORD='HG095pjS3Ighc77sLX'
+export tmpWORD='xtechvps88'
 export tmpMirror=''
 export ipAddr=''
 export ipMask=''
@@ -39,7 +39,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName=''
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -87,7 +87,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -i|--interface)
       shift
-      interfaceSelect="0"
+      interfaceSelect="$1"
       shift
       ;;
     --ip-addr)
@@ -97,7 +97,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-mask)
       shift
-      ipMask="$1"
+      ipMask=""
       shift
       ;;
     --ip-gate)
@@ -112,7 +112,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='0'
+      setInterfaceName='1'
       ;;
     --loader)
       shift
@@ -126,8 +126,8 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='0'
-      WinRemote="0"
+      setRDP='1'
+      WinRemote="$1"
       shift
       ;;
     -cmd)
@@ -146,7 +146,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -port)
       shift
-      sshPORT="22"
+      sshPORT="$1"
       shift
       ;;
     --noipv6)
@@ -239,13 +239,13 @@ function netmask() {
 }
 
 function getInterface(){
-  Interfaces"eth0"
+  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
       [ -n "$item" ] || continue
       echo "$defaultRoute" |grep -q "$item"
-      [ $? -eq 0 ] && interface="eth0" && break
+      [ $? -eq 0 ] && interface="$item" && break
     done
   echo "$interface"
 }
@@ -306,17 +306,17 @@ fi
 [ -n "$ipAddr" ] && [ -n "$ipMask" ] && [ -n "$ipGate" ] && setNet='1';
 if [ "$setNet" == "0" ]; then
   dependence ip
-  [ -n "$interface" ] || interface="eth0"
+  [ -n "$interface" ] || interface=`getInterface`
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
   ipAddr=`echo ${iAddr} |cut -d'/' -f1`
-  ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
+  ipMask="255.255.255.0"
   ipGate=`ip route show default |grep "^default" |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |head -n1`
 fi
 if [ -z "$interface" ]; then
     dependence ip
-    [ -n "$interface" ] || interface="eth0"
+    [ -n "$interface" ] || interface=`getInterface`
 fi
-IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
+IPv4="$ipAddr"; MASK="255.255.255.0"; GATE="$ipGate";
 
 [ -n "$IPv4" ] && [ -n "$MASK" ] && [ -n "$GATE" ] && [ -n "$ipDNS" ] || {
   echo -ne '\nError: Invalid network config\n\n'
@@ -325,7 +325,7 @@ IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
 }
 
 if [[ "$Relese" == 'Debian' ]] || [[ "$Relese" == 'Ubuntu' ]]; then
-  dependence net-tools,zip,unzip,wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
+  dependence wget,awk,net-tools,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,zip,unzip,iptables,chrony,ntpdate,build-essential,bash-completion,sud,curl,apt-utils,socat,xz-utils,apt-transport-https,lsb-release,nano;
 elif [[ "$Relese" == 'CentOS' ]]; then
   dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,file,xz;
 fi
@@ -559,7 +559,7 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION"
+  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -626,7 +626,7 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select eth0
+d-i netcfg/choose_interface select $interfaceSelect
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
@@ -684,6 +684,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
 d-i pkgsel/include string openssh-server net-tools wget curl
+d-i pkgsel/exclude string ufw firewalld watchdog modemmanager
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
