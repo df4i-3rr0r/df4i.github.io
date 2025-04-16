@@ -87,7 +87,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -i|--interface)
       shift
-      interfaceSelect="$1"
+      interfaceSelect="0"
       shift
       ;;
     --ip-addr)
@@ -112,7 +112,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='1'
+      setInterfaceName='0'
       ;;
     --loader)
       shift
@@ -126,8 +126,8 @@ while [[ $# -ge 1 ]]; do
       ;;
     -rdp)
       shift
-      setRDP='1'
-      WinRemote="$1"
+      setRDP='0'
+      WinRemote="0"
       shift
       ;;
     -cmd)
@@ -146,7 +146,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     -port)
       shift
-      sshPORT="$1"
+      sshPORT="22"
       shift
       ;;
     --noipv6)
@@ -239,14 +239,13 @@ function netmask() {
 }
 
 function getInterface(){
-  interface=""
-  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
+  Interfaces"eth0"
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
       [ -n "$item" ] || continue
       echo "$defaultRoute" |grep -q "$item"
-      [ $? -eq 0 ] && interface="$item" && break
+      [ $? -eq 0 ] && interface="eth0" && break
     done
   echo "$interface"
 }
@@ -307,7 +306,7 @@ fi
 [ -n "$ipAddr" ] && [ -n "$ipMask" ] && [ -n "$ipGate" ] && setNet='1';
 if [ "$setNet" == "0" ]; then
   dependence ip
-  [ -n "$interface" ] || interface=`getInterface`
+  [ -n "$interface" ] || interface="eth0"
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
   ipAddr=`echo ${iAddr} |cut -d'/' -f1`
   ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
@@ -315,7 +314,7 @@ if [ "$setNet" == "0" ]; then
 fi
 if [ -z "$interface" ]; then
     dependence ip
-    [ -n "$interface" ] || interface=`getInterface`
+    [ -n "$interface" ] || interface="eth0"
 fi
 IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
 
@@ -326,7 +325,7 @@ IPv4="$ipAddr"; MASK="$ipMask"; GATE="$ipGate";
 }
 
 if [[ "$Relese" == 'Debian' ]] || [[ "$Relese" == 'Ubuntu' ]]; then
-  dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
+  dependence net-tools,zip,unzip,wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename;
 elif [[ "$Relese" == 'CentOS' ]]; then
   dependence wget,awk,grep,sed,cut,cat,lsblk,cpio,gzip,find,dirname,basename,file,xz;
 fi
@@ -447,7 +446,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="auto"
+    interfaceSelect="link"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
@@ -627,7 +626,7 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select $interfaceSelect
+d-i netcfg/choose_interface select eth0
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
@@ -635,7 +634,7 @@ d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
 d-i netcfg/get_netmask string $MASK
 d-i netcfg/get_gateway string $GATE
-d-i netcfg/get_nameservers string $ipDNS
+d-i netcfg/get_nameservers string "1.1.1.1 1.0.0.1"
 d-i netcfg/no_default_route boolean true
 d-i netcfg/confirm_static boolean true
 
@@ -654,7 +653,7 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean false
+d-i clock-setup/ntp boolean true
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -762,7 +761,7 @@ vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
+network --bootproto=static --ip=$IPv4 --netmask=255.255.255.0 --gateway=$GATE --nameserver="1.1.1.1 1.0.0.1" --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
