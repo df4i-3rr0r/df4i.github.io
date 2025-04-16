@@ -239,7 +239,7 @@ function netmask() {
 }
 
 function getInterface(){
-  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
+  Interfaces="eth0"
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
@@ -559,7 +559,7 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
+  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -802,4 +802,3 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
-7
