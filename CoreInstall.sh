@@ -26,7 +26,7 @@ export ipMask=''
 export ipGate=''
 export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
-export interface=''
+export interface='eth0'
 export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
@@ -39,7 +39,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName=''
+export setInterfaceName='0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -239,7 +239,8 @@ function netmask() {
 }
 
 function getInterface(){
-  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
+  interface="eth0"
+#  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
@@ -309,7 +310,7 @@ if [ "$setNet" == "0" ]; then
   [ -n "$interface" ] || interface=`getInterface`
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
   ipAddr=`echo ${iAddr} |cut -d'/' -f1`
-  ipMask="255.255.255.0"
+  ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
   ipGate=`ip route show default |grep "^default" |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |head -n1`
 fi
 if [ -z "$interface" ]; then
@@ -559,7 +560,7 @@ if [[ "$loaderMode" == "0" ]]; then
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
   [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION"
+  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -667,7 +668,7 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select traditional
+d-i partman/mount_style select uuid
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
@@ -683,8 +684,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server zip unzip iptables chrony ntpdate build-essential bash-completion sed apt-utils socat xz-utils apt-transport-https lsb-release nano wget curl nano net-tools
-d-i pkgsel/exclude string ufw firewalld watchdog modemmanager
+d-i pkgsel/include string openssh-server net-tools wget curl
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
@@ -762,7 +762,7 @@ vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-network --bootproto=static --ip=$IPv4 --netmask=255.255.255.0 --gateway=$GATE --nameserver="1.1.1.1 1.0.0.1" --onboot=on
+network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
