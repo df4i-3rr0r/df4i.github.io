@@ -27,7 +27,7 @@ export ipGate=''
 export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect=''
+export interfaceSelect='0'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
@@ -97,7 +97,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-mask)
       shift
-      ipMask="$1"
+      ipMask="255.255.255.0"
       shift
       ;;
     --ip-gate)
@@ -802,4 +802,3 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
-u
