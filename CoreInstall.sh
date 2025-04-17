@@ -22,24 +22,24 @@ export tmpURL=''
 export tmpWORD='xtechvps88'
 export tmpMirror=''
 export ipAddr=''
-export ipMask=''
+export ipMask='255.255.255.0'
 export ipGate=''
 export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
-export interface='eth0'
+export interface=''
 export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
 export setNet='0'
 export setRDP='0'
-export setIPv6='0'
+export setIPv6=''
 export isMirror='0'
 export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName=''
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -112,7 +112,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='1'
+      setInterfaceName='$1'
       ;;
     --loader)
       shift
@@ -239,8 +239,8 @@ function netmask() {
 }
 
 function getInterface(){
-  interface="eth0"
-#  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
+  interface=""
+  Interfaces=`cat /proc/net/dev |grep ':' |cut -d':' -f1 |sed 's/\s//g' |grep -iv '^lo\|^sit\|^stf\|^gif\|^dummy\|^vmnet\|^vir\|^gre\|^ipip\|^ppp\|^bond\|^tun\|^tap\|^ip6gre\|^ip6tnl\|^teql\|^ocserv\|^vpn'`
   defaultRoute=`ip route show default |grep "^default"`
   for item in `echo "$Interfaces"`
     do
@@ -310,7 +310,7 @@ if [ "$setNet" == "0" ]; then
   [ -n "$interface" ] || interface=`getInterface`
   iAddr=`ip addr show dev $interface |grep "inet.*" |head -n1 |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}'`
   ipAddr=`echo ${iAddr} |cut -d'/' -f1`
-  ipMask=`netmask $(echo ${iAddr} |cut -d'/' -f2)`
+  ipMask='255.255.255.0'
   ipGate=`ip route show default |grep "^default" |grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |head -n1`
 fi
 if [ -z "$interface" ]; then
@@ -559,7 +559,7 @@ if [[ "$loaderMode" == "0" ]]; then
   LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new |awk '{print $1}' |tail -n 1)";
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
-  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
+  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION="net.ifnames=0 biosdevname=0"
   [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
@@ -633,9 +633,9 @@ d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string 255.255.255.0
+d-i netcfg/get_netmask string $MASK
 d-i netcfg/get_gateway string $GATE
-d-i netcfg/get_nameservers string "1.1.1.1 1.0.0.1"
+d-i netcfg/get_nameservers string $ipDNS
 d-i netcfg/no_default_route boolean true
 d-i netcfg/confirm_static boolean true
 
@@ -654,7 +654,7 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean true
+d-i clock-setup/ntp boolean false
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
