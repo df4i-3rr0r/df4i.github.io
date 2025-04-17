@@ -668,7 +668,7 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select uuid
+d-i partman/mount_style select traditional
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
