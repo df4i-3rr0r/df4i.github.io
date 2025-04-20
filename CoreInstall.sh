@@ -98,7 +98,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='0'
+      setInterfaceName='1'
       ;;
     --loader)
       shift
