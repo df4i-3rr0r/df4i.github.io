@@ -17,7 +17,7 @@ export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
-export setNet='0'
+export setNet='1'
 export setRDP='0'
 export setIPv6='0'
 export isMirror='0'
@@ -137,7 +137,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='0'
+      setIPv6='1'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
