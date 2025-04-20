@@ -25,7 +25,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName=''
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -98,7 +98,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --dev-net)
       shift
-      setInterfaceName='eth0'
+      setInterfaceName='$1'
       ;;
     --loader)
       shift
@@ -788,4 +788,3 @@ else
   [[ -f "/boot/vmlinuz" ]] && rm -rf "/boot/vmlinuz"
   echo && ls -AR1 "$HOME/loader"
 fi
-o
