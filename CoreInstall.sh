@@ -17,7 +17,7 @@ export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
-export setNet='1'
+export setNet='0'
 export setRDP='0'
 export setIPv6='0'
 export isMirror='0'
@@ -137,7 +137,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='1'
+      setIPv6='0'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -545,7 +545,7 @@ if [[ "$loaderMode" == "0" ]]; then
   LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new |awk '{print $1}' |tail -n 1)";
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
-  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION="net.ifnames=0 biosdevname=0"
+  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
   [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
