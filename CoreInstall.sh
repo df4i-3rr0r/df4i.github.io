@@ -640,7 +640,7 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean false
+d-i clock-setup/ntp boolean true
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -670,7 +670,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl
+d-i pkgsel/include string openssh-server net-tools wget curl iptables iptables-persistent chrony ntpdate build-essential bash-completion nano apt-utils socat xz-utils apt-transport-https lsb-release
+d-i pkgsel/exclude string ufw watchdog modemmanager firewalld
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
