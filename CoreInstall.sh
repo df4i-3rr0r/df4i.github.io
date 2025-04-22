@@ -137,7 +137,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --noipv6)
       shift
-      setIPv6='0'
+      setIPv6='1'
       ;;
     -a|--auto|-m|--manual|-ssl)
       shift
@@ -433,7 +433,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="auto"
+    interfaceSelect="link"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
