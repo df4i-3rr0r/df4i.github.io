@@ -747,8 +747,7 @@ unsupported_hardware
 vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
-network --bootproto=dhcp --onboot=on
-#network --bootproto=static --ip=$IPv4 --netmask=255.255.255.0 --gateway=$GATE --nameserver=$ipDNS --onboot=on
+network --bootproto=static --ip=$IPv4 --netmask=255.255.255.0 --gateway=$GATE --nameserver=$ipDNS --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
