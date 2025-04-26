@@ -433,7 +433,7 @@ clear && echo -e "\n\033[36m# Install\033[0m\n"
 
 if [ -z "$interfaceSelect" ]; then
   if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
-    interfaceSelect="link"
+    interfaceSelect="auto"
   elif [[ "$linux_relese" == 'centos' ]]; then
     interfaceSelect="link"
   fi
@@ -545,8 +545,7 @@ if [[ "$loaderMode" == "0" ]]; then
   LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new |awk '{print $1}' |tail -n 1)";
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
-  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
-  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION"
+  [[ "$setInterfaceName" == "1" ]] && Add_OPTION=""
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
