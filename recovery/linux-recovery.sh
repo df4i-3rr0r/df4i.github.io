@@ -12,7 +12,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
   echo "Core Download[Global]..."
-  wget --no-check-certificate -qO ~/Core_Install.sh 'https://dnbiznet.github.io/CoreInstall.sh' && chmod a+x ~/Core_Install.sh
+  wget --no-check-certificate -qO ~/core-install.sh 'https://dnbiznet.github.io/core-install.sh' && chmod a+x ~/core-install.sh
   CentOSMirrors=""
   CentOSVaultMirrors=""
   DebianMirrors=""
