@@ -56,77 +56,77 @@ case $N in
   1)
     echo -e "\nInstall...CentOS 9\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_9.X_x64_Legacy_NetInstallation_Stable_v1.6.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_9.X_x64_Legacy_NetInstallation_Stable_v1.6.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   2)
     echo -e "\nInstall...CentOS 8\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   3)
     echo -e "\nInstall...CentOS 7\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_7.X_x64_Legacy_NetInstallation_Final_v9.8.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/CentOS/CentOS_7.X_x64_Legacy_NetInstallation_Final_v9.8.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   4)
     echo -e "\nInstall...Debian 11\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -d 11 -a -v 64 $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -d 11 -a -v 64 $DebianMirrors $CXTaddLine
     ;;
   5)
     echo -e "\nInstall...Debian 10\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -d 10 -a -v 64 $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -d 10 -a -v 64 $DebianMirrors $CXTaddLine
     ;;
   6)
     echo -e "\nInstall...OpenWRT\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/OpenWRT-Virtualization-Servers/Stable/openwrt-x86-64-generic-squashfs-combined.img.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/OpenWRT-Virtualization-Servers/Stable/openwrt-x86-64-generic-squashfs-combined.img.gz" $DebianMirrors $CXTaddLine
     ;;
   7)
     echo -e "\nInstall...Oracle 9\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Oracle/Oracle_9.X_x64_Legacy_NetInstallation_Stable_v1.8.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Oracle/Oracle_9.X_x64_Legacy_NetInstallation_Stable_v1.8.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   8)
     echo -e "\nInstall...Rocky 9\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Rocky/Rocky_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Rocky/Rocky_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   9)
     echo -e "\nInstall...Rocky 8\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Rocky/Rocky_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Rocky/Rocky_8.X_x64_Legacy_NetInstallation_Stable_v6.8.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   10)
     echo -e "\nInstall...Ubuntu 22\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -u 22.04 -a -v 64 $UbuntuMirrors $CXTaddLine
+    bash ~/core-install.sh -u 22.04 -a -v 64 $UbuntuMirrors $CXTaddLine
     ;;
   11)
     echo -e "\nInstall...Ubuntu 20\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -u 20.04 -a -v 64 $UbuntuMirrors $CXTaddLine
+    bash ~/core-install.sh -u 20.04 -a -v 64 $UbuntuMirrors $CXTaddLine
     ;;
   21)
     echo -e "\nInstall...Windows Server 2022\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2022_DataCenter_CN_v2.12.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2022_DataCenter_CN_v2.12.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   22)
     echo -e "\nInstall...Windows Server 2019\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2019_DataCenter_CN_v5.1.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2019_DataCenter_CN_v5.1.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   23)
     echo -e "\nInstall...Windows Server 2016\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2016_DataCenter_CN_v4.12.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2016_DataCenter_CN_v4.12.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   24)
     echo -e "\nInstall...Windows Server 2012 R2\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2012R2_DataCenter_CN_v4.29.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Windows_DD_Disks/Disk_Windows_Server_2012R2_DataCenter_CN_v4.29.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   99)
     echo "更多系统前往CXT博客及ODC查看。https://www.cxthhhhh.com"
@@ -135,7 +135,7 @@ case $N in
   100)
     echo -e "\nInstall...Bare-metal System Deployment Platform(Advanced Users)\n"
     read -s -n1 -p "(Press any key to continue...)"
-    bash ~/Core_Install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Bare-metal_System_Deployment_Platform/CXT_Bare-metal_System_Deployment_Platform_v3.6.vhd.gz" $DebianMirrors $CXTaddLine
+    bash ~/core-install.sh -a -v 64 -dd "https://odc.cxthhhhh.com/d/SyStem/Bare-metal_System_Deployment_Platform/CXT_Bare-metal_System_Deployment_Platform_v3.6.vhd.gz" $DebianMirrors $CXTaddLine
     ;;
   0) exit 0 ;;
   *)
