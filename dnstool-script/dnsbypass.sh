@@ -64,3 +64,4 @@ rm -rf /root/dnsbypass.sh > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Your Server Will Reboot Now"
 reboot > /dev/null 2>&1
+
