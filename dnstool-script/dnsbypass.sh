@@ -17,13 +17,14 @@ red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
 echo -e "[ ${BGreen}INFO${NC} ] Get update first"
 apt -y update > /dev/null 2>&1
+apt install sudo -y > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
-apt -y install dnsmasq bindutils > /dev/null 2>&1
+sudo apt install dnsmasq bindutils -y > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Creating dns bypass"
+rm -rf /etc/dnsmasq.d/*
 rm -rf /etc/dnsmasq.conf > /dev/null 2>&1
-rm -rf /etc/dnsmasq.d/* > /dev/null 2>&1
 cat > /etc/dnsmasq.conf <<-DNS1
 ##!/usr/bin/env bash
 # General Settings
@@ -63,4 +64,3 @@ rm -rf /root/dnsbypass.sh > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Your Server Will Reboot Now"
 reboot > /dev/null 2>&1
-
