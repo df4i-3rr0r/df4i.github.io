@@ -22,7 +22,9 @@ echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
 apt -y install dnsmasq bindutils >/dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Creating dns bypass"
-cat > /etc/dnsmasq.conf <<-DNS1 2>&1
+rm -rf /etc/dnsmasq.conf <<-DNS1 >/dev/null 2>&1
+rm -rf /etc/dnsmasq.d/* <<-DNS1 >/dev/null 2>&1
+cat > /etc/dnsmasq.conf <<-DNS1 >/dev/null 2>&1
 ##!/usr/bin/env bash
 # General Settings
 no-resolv
@@ -46,19 +48,21 @@ address=/amazon.co.jp/124.217.246.148
 address=/primevideo.com/124.217.246.148
 address=/sooka.my/124.217.246.148
 DNS1
-chmod +x /etc/dnsmasq.conf 2>&1
-systemctl enable dnsmasq 2>&1
-systemctl start dnsmasq 2>&1
+chmod +x /etc/dnsmasq.conf >/dev/null 2>&1
+systemctl enable dnsmasq >/dev/null 2>&1
+systemctl start dnsmasq >/dev/null 2>&1
 
-rm -rf /etc/resolv.conf 2>&1
-cat > /etc/resolv.conf <<-RSV 2>&1
+
+
+rm -rf /etc/resolv.conf >/dev/null 2>&1
+cat > /etc/resolv.conf <<-RSV >/dev/null 2>&1
 nameserver 127.0.0.1
 RSV
 
 echo -e "[ ${BGreen}INFO${NC} ] Finishing Installer"
-sleep 5 2>&1
-rm -rf /root/* 2>&1
+sleep 5 >/dev/null 2>&1
+rm -rf /root/* >/dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Your Server Will Reboot Now"
-reboot 2>&1
+reboot >/dev/null 2>&1
 
