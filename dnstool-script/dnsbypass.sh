@@ -29,8 +29,10 @@ cat > /etc/dnsmasq.conf <<-DNS1
 ##!/usr/bin/env bash
 # General Settings
 no-resolv
+all-servers
 interface=eth0
 interface=lo
+server=1.0.0.1
 server=1.1.1.1
 ############
 # > Netflix
