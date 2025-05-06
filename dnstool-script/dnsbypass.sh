@@ -35,6 +35,10 @@ interface=lo
 server=1.0.0.1
 server=1.1.1.1
 ############
+# > BLOCK
+address=/fast.com/0.0.0.0
+address=/playstation.com/0.0.0.0
+
 # > Netflix
 address=/netflix.com/124.217.246.148
 address=/netflix.net/124.217.246.148
