@@ -16,8 +16,8 @@ green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
 echo -e "[ ${BGreen}INFO${NC} ] Get update first"
-apt -y update > /dev/null 2>&1
-apt install sudo -y > /dev/null 2>&1
+apt update -y
+apt install sudo -y
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
 sudo apt install dnsmasq bindutils -y > /dev/null 2>&1
@@ -35,24 +35,26 @@ interface=lo
 server=1.0.0.1
 server=1.1.1.1
 ############
-# > BLOCK
+# > MAIN BLOCK
 address=/fast.com/0.0.0.0
 address=/playstation.com/0.0.0.0
 
-# > Netflix
+# > NETFLIX/HOTSTAR/PRIME
+address=/amazon.co.jp/124.217.246.148
+address=/primevideo.com/124.217.246.148
 address=/netflix.com/124.217.246.148
 address=/netflix.net/124.217.246.148
 address=/nflximg.com/124.217.246.148
 address=/nflxvideo.net/124.217.246.148
 address=/nflxext.com/124.217.246.148
 
-# > MEDIA-STREAM
+# > XTRO
 address=/astro.com.my/124.217.246.148
+
+# > DRAMA-BYPASS
 address=/viu.com/124.217.246.148
 address=/iq.com/124.217.246.148
 address=/iqyi.com/124.217.246.148
-address=/amazon.co.jp/124.217.246.148
-address=/primevideo.com/124.217.246.148
 address=/sooka.my/124.217.246.148
 DNS1
 chmod +x /etc/dnsmasq.conf
