@@ -16,8 +16,9 @@ green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
 echo -e "[ ${BGreen}INFO${NC} ] Get update first"
-apt update -y
-apt install sudo -y
+apt update -y > /dev/null 2>&1
+apt upgrade -y > /dev/null 2>&1
+apt install sudo -y > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
 systemctl disable systemd-resolved > /dev/null 2>&1
@@ -66,8 +67,8 @@ address=/iqyi.com/124.217.246.148
 address=/sooka.my/124.217.246.148
 DNS1
 chmod +x /etc/dnsmasq.conf
-systemctl enable dnsmasq
-systemctl start dnsmasq
+systemctl enable dnsmasq > /dev/null 2>&1
+systemctl start dnsmasq > /dev/null 2>&1
 
 rm -rf /etc/resolv.conf
 cat > /etc/resolv.conf <<-RSV
