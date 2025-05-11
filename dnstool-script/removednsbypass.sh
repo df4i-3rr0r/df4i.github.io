@@ -20,7 +20,7 @@ apt update -y
 apt install sudo -y
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the remove package dns"
-sudo apt autoremove --purge dnsmasq dnsmasq-* bindutils -y > /dev/null 2>&1
+sudo apt autoremove --purge dnsmasq dnsmasq-* dnsutils -y > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Setting Back Public Dns"
 rm -rf /etc/dnsmasq.d/*
