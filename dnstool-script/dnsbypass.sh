@@ -17,7 +17,6 @@ red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
 echo -e "[ ${BGreen}INFO${NC} ] Get update first"
 apt update -y > /dev/null 2>&1
-apt upgrade -y > /dev/null 2>&1
 apt install sudo -y > /dev/null 2>&1
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
