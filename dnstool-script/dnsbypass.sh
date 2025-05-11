@@ -1,4 +1,5 @@
 #!/bin/bash
+#Script By Dyno
 
 red='\e[1;31m'
 green='\e[0;32m'
@@ -15,16 +16,24 @@ yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
+systemctl disable systemd-resolved
+
+rm -rf /etc/resolv.conf
+cat > /etc/resolv.conf <<-RSV
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+RSV
+
 echo -e "[ ${BGreen}INFO${NC} ] Get update first"
 apt update -y
 apt install sudo -y
 
 echo -e "[ ${BGreen}INFO${NC} ] Preparing the install file"
-sudo apt install dnsmasq bindutils -y > /dev/null 2>&1
+sudo apt install dnsmasq bindutils -y
 
 echo -e "[ ${BGreen}INFO${NC} ] Creating dns bypass"
 rm -rf /etc/dnsmasq.d/*
-rm -rf /etc/dnsmasq.conf > /dev/null 2>&1
+rm -rf /etc/dnsmasq.conf
 cat > /etc/dnsmasq.conf <<-DNS1
 ##!/usr/bin/env bash
 # General Settings
@@ -59,7 +68,6 @@ address=/sooka.my/124.217.246.148
 DNS1
 chmod +x /etc/dnsmasq.conf
 systemctl enable dnsmasq
-systemctl start dnsmasq
 
 rm -rf /etc/resolv.conf
 cat > /etc/resolv.conf <<-RSV
@@ -67,9 +75,10 @@ nameserver 127.0.0.1
 RSV
 
 echo -e "[ ${BGreen}INFO${NC} ] Finishing Installer"
-sleep 5 > /dev/null 2>&1
-rm -rf /root/dnsbypass.sh > /dev/null 2>&1
+sleep 5
+
+rm -rf /root/dnsbypass.sh
 
 echo -e "[ ${BGreen}INFO${NC} ] Your Server Will Reboot Now"
-reboot > /dev/null 2>&1
+reboot
 
