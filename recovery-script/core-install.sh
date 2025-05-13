@@ -627,7 +627,7 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select eth0
+d-i netcfg/choose_interface select auto
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
@@ -685,7 +685,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl sudo net-tools
+d-i pkgsel/include string openssh-server net-tools wget curl sudo
 d-i pkgsel/include string ufw
 d-i pkgsel/upgrade select none
 
