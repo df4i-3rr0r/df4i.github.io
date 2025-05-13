@@ -49,6 +49,7 @@ address=/fast.com/0.0.0.0
 address=/playstation.com/0.0.0.0
 
 # > NETFLIX/HOTSTAR/PRIME
+address=/hotstar.com/124.217.246.148
 address=/amazon.co.jp/124.217.246.148
 address=/primevideo.com/124.217.246.148
 address=/netflix.com/124.217.246.148
@@ -57,8 +58,9 @@ address=/nflximg.com/124.217.246.148
 address=/nflxvideo.net/124.217.246.148
 address=/nflxext.com/124.217.246.148
 
-# > XTRO
+# > XTRO/YOUTUBE
 address=/astro.com.my/124.217.246.148
+address=/youtube.com/124.217.246.148
 
 # > DRAMA-BYPASS
 address=/viu.com/124.217.246.148
