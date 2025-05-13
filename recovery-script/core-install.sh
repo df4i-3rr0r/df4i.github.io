@@ -1,20 +1,6 @@
 #!/bin/bash
 
-## License: GPL
-## The CXT version of one-click network reinstallation system Magic revision.
-## It can reinstall CentOS, Rocky, Debian, Ubuntu, Oracle and other General Operating Systems (continuously added) over the network in one click.
-## It can reinstall Windwos 2022, 2019, 2016, 2012R2, Windows 10, 11 and other Windows systems (continuously added) via the network in one click.
-## Support GRUB or GRUB2 for installing a clean minimal system.
-## Technical support is provided by the CXT (CXTHHHHH.com). (based on the original version of Vicer)
-
-## Magic Modify version author:
-## Default root password: cxthhhhh.com
-## WebSite: https://cxthhhhh.com
-## Written By CXT (CXTHHHHH.com)
-
-## Original version author:
-## Blog: https://moeclub.org
-## Written By MoeClub.org (Vicer)
+## Remode By DnBizNet
 
 export tmpVER=''
 export tmpDIST=''
@@ -27,7 +13,7 @@ export ipGate=''
 export ipDNS='1.1.1.1,1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect=''
+export interfaceSelect='eth0'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
@@ -627,18 +613,17 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select auto
+d-i netcfg/choose_interface select $interfaceSelect
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string 255.255.255.0
+d-i netcfg/get_netmask string $MASK
 d-i netcfg/get_gateway string $GATE
-d-i netcfg/get_nameservers string 1.1.1.1,1.0.0.1
+d-i netcfg/get_nameservers string $ipDNS
 d-i netcfg/no_default_route boolean true
-d-i netcfg/disable_dhcp boolean false
-d-i netcfg/confirm_static boolean false
+d-i netcfg/confirm_static boolean true
 
 d-i hw-detect/load_firmware boolean true
 
@@ -669,7 +654,7 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select traditional
+d-i partman/mount_style select uuid
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
@@ -685,8 +670,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl sudo
-d-i pkgsel/include string ufw
+d-i pkgsel/include string openssh-server net-tools wget curl
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
@@ -763,7 +747,8 @@ unsupported_hardware
 vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
-network --bootproto=dhcp --onboot=yes
+#ONDHCP network --bootproto=dhcp --onboot=on
+network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
