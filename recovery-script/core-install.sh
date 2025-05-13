@@ -763,7 +763,7 @@ unsupported_hardware
 vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
-network --bootproto=dhcp --onboot=on
+network --bootproto=dhcp --onboot=yes
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
