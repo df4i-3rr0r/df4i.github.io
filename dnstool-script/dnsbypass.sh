@@ -36,10 +36,10 @@ rm -rf /etc/dnsmasq.conf > /dev/null 2>&1
 cat > /etc/dnsmasq.conf <<-DNS1
 ##!/usr/bin/env bash
 # General Settings
+no-hosts
 no-resolv
 all-servers
 interface=eth0
-interface=lo
 local-ttl=60
 server=1.0.0.1
 server=1.1.1.1
@@ -67,6 +67,23 @@ address=/viu.com/124.217.246.148
 address=/iq.com/124.217.246.148
 address=/iqyi.com/124.217.246.148
 address=/sooka.my/124.217.246.148
+
+# > BANK/GOV-SITE
+address=/affinalways.com/124.217.246.148
+address=/affinagroup.com/124.217.246.148
+address=/rhbgroup.com/124.217.246.148
+address=/bankislam.com/124.217.246.148
+address=/bankislam.biz/124.217.246.14
+address=/hongleongconnect.my/124.217.246.148
+address=/pbebank.com/124.217.246.148
+address=/maybank2e.com/124.217.246.148
+address=/aeonbank.com.my/124.217.246.148
+address=/cimbocto.com.my/124.217.246.148
+address=/mae.com.my/124.217.246.148
+address=/maybank2u.com.my/124.217.246.148
+address=/cimbclicks.com.my/124.217.246.148
+address=/bankrakyat.com.my/124.217.246.148
+address=/irakyat.com.my/124.217.246.148
 DNS1
 chmod +x /etc/dnsmasq.conf
 systemctl enable dnsmasq > /dev/null 2>&1
