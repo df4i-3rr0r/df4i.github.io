@@ -1,6 +1,20 @@
 #!/bin/bash
 
-## Recode By DnBizNet
+## License: GPL
+## The CXT version of one-click network reinstallation system Magic revision.
+## It can reinstall CentOS, Rocky, Debian, Ubuntu, Oracle and other General Operating Systems (continuously added) over the network in one click.
+## It can reinstall Windwos 2022, 2019, 2016, 2012R2, Windows 10, 11 and other Windows systems (continuously added) via the network in one click.
+## Support GRUB or GRUB2 for installing a clean minimal system.
+## Technical support is provided by the CXT (CXTHHHHH.com). (based on the original version of Vicer)
+
+## Magic Modify version author:
+## Default root password: cxthhhhh.com
+## WebSite: https://cxthhhhh.com
+## Written By CXT (CXTHHHHH.com)
+
+## Original version author:
+## Blog: https://moeclub.org
+## Written By MoeClub.org (Vicer)
 
 export tmpVER=''
 export tmpDIST=''
@@ -8,9 +22,9 @@ export tmpURL=''
 export tmpWORD='xtechvps8899'
 export tmpMirror=''
 export ipAddr=''
-export ipMask=''
+export ipMask='255.255.255.0'
 export ipGate=''
-export ipDNS='1.1.1.1 1.0.0.1'
+export ipDNS='1.1.1.1,1.0.0.1'
 export IncDisk='default'
 export interface=''
 export interfaceSelect=''
@@ -83,7 +97,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-mask)
       shift
-      ipMask="255.255.255.0"
+      ipMask="$1"
       shift
       ;;
     --ip-gate)
@@ -93,7 +107,7 @@ while [[ $# -ge 1 ]]; do
       ;;
     --ip-dns)
       shift
-      ipDNS="1.1.1.1 1.0.0.1"
+      ipDNS="$1"
       shift
       ;;
     --dev-net)
@@ -545,7 +559,8 @@ if [[ "$loaderMode" == "0" ]]; then
   LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new |awk '{print $1}' |tail -n 1)";
   [ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd';
 
-  [[ "$setInterfaceName" == "1" ]] && Add_OPTION=""
+  [[ "$setInterfaceName" == "1" ]] && Add_OPTION="net.ifnames=0 biosdevname=0" || Add_OPTION=""
+  [[ "$setIPv6" == "1" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1"
   
   lowMem || Add_OPTION="$Add_OPTION lowmem=+0"
 
@@ -607,22 +622,23 @@ $UNCOMP < /tmp/$NewIMG | cpio --extract --verbose --make-directories --no-absolu
 
 if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
 cat >/tmp/boot/preseed.cfg<<EOF
-d-i debian-installer/locale string en_US.UTF-8
+d-i debian-installer/locale string en_US
 d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select $interfaceSelect
+d-i netcfg/choose_interface select eth0
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
 d-i netcfg/get_ipaddress string $IPv4
-d-i netcfg/get_netmask string $MASK
+d-i netcfg/get_netmask string 255.255.255.0
 d-i netcfg/get_gateway string $GATE
-d-i netcfg/get_nameservers string $ipDNS
+d-i netcfg/get_nameservers string 1.1.1.1,1.0.0.1
 d-i netcfg/no_default_route boolean true
-d-i netcfg/confirm_static boolean true
+d-i netcfg/disable_dhcp boolean false
+d-i netcfg/confirm_static boolean false
 
 d-i hw-detect/load_firmware boolean true
 
@@ -639,7 +655,7 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean true
+d-i clock-setup/ntp boolean false
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -669,8 +685,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server net-tools wget curl
-d-i pkgsel/exclude string ufw watchdog modemmanager firewalld
+d-i pkgsel/include string openssh-server net-tools wget curl sudo net-tools
+d-i pkgsel/include string ufw
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
@@ -737,7 +753,7 @@ url --url="$LinuxMirror/$DIST/os/$VER/"
 rootpw --iscrypted $myPASSWORD
 auth --useshadow --passalgo=sha512
 firstboot --disable
-lang en_US.UTF-8
+lang en_US
 keyboard us
 selinux --disabled
 logging --level=info
@@ -747,7 +763,7 @@ unsupported_hardware
 vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
-network --bootproto=static --ip=$IPv4 --netmask=255.255.255.0 --gateway=$GATE --nameserver=$ipDNS --onboot=on
+network --bootproto=dhcp --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
