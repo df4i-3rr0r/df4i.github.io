@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Remode By DnBizNet
+## Remode By Dyno
 
 export tmpVER=''
 export tmpDIST=''
@@ -8,12 +8,12 @@ export tmpURL=''
 export tmpWORD='xtechvps8899'
 export tmpMirror=''
 export ipAddr=''
-export ipMask='255.255.255.0'
+export ipMask=''
 export ipGate=''
-export ipDNS='1.1.1.1,1.0.0.1'
+export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect='eth0'
+export interfaceSelect=''
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
@@ -25,7 +25,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='0'
+export setInterfaceName='1'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -608,12 +608,12 @@ $UNCOMP < /tmp/$NewIMG | cpio --extract --verbose --make-directories --no-absolu
 
 if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]]; then
 cat >/tmp/boot/preseed.cfg<<EOF
-d-i debian-installer/locale string en_US
+d-i debian-installer/locale string en_US.UTF-8
 d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select $interfaceSelect
+d-i netcfg/choose_interface select auto
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
@@ -631,6 +631,7 @@ d-i mirror/country string manual
 d-i mirror/http/hostname string $MirrorHost
 d-i mirror/http/directory string $MirrorFolder
 d-i mirror/http/proxy string
+d-i apt-setup/services-select multiselect
 
 d-i passwd/root-login boolean true
 d-i passwd/make-user boolean false
@@ -640,7 +641,8 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp boolean false
+d-i clock-setup/ntp-server string pool.ntp.org
+d-i clock-setup/ntp boolean true
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
 d-i partman/early_command string [[ -n "\$(blkid -t TYPE='vfat' -o device)" ]] && umount "\$(blkid -t TYPE='vfat' -o device)"; \
@@ -654,13 +656,14 @@ cp -f '/net.bat' './net.bat'; \
 umount /media || true; \
 
 d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/mount_style select uuid
+d-i partman/mount_style select traditional
 d-i partman/choose_partition select finish
 d-i partman-auto/method string regular
 d-i partman-auto/init_automatically_partition select Guided - use entire disk
 d-i partman-auto/choose_recipe select All files in one partition (recommended for new users)
 d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-auto/choose_recipe select atomic
 d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman/confirm boolean true
@@ -670,15 +673,14 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server sudo net-tools wget curl
-d-i pkgsel/exclude ufw
+d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl chrony
+d-i pkgsel/exclude string ufw unattended-upgrades cloud-init
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
 
 d-i grub-installer/only_debian boolean true
-d-i grub-installer/bootdev string $IncDisk
-d-i grub-installer/force-efi-extra-removable boolean true
+d-i grub-installer/bootdev string default
 d-i finish-install/reboot_in_progress note
 d-i debian-installer/exit/reboot boolean true
 d-i preseed/late_command string	\
@@ -690,7 +692,7 @@ echo '' >>/target/etc/crontab; \
 echo '${setCMD}' >/target/etc/run.sh;
 EOF
 
-if [[ "$loaderMode" != "0" ]] && [[ "$setNet" == '0' ]]; then
+if [[ "$PROTO" == 'dhcp' ]]; then 
   sed -i '/netcfg\/disable_autoconfig/d' /tmp/boot/preseed.cfg
   sed -i '/netcfg\/dhcp_options/d' /tmp/boot/preseed.cfg
   sed -i '/netcfg\/get_.*/d' /tmp/boot/preseed.cfg
@@ -703,8 +705,6 @@ if [[ "$linux_relese" == 'debian' ]]; then
   sed -i '/pkgsel\/update-policy/d' /tmp/boot/preseed.cfg
   sed -i 's/umount\ \/media.*true\;\ //g' /tmp/boot/preseed.cfg
   [[ -f '/tmp/firmware.cpio.gz' ]] && gzip -d < /tmp/firmware.cpio.gz | cpio --extract --verbose --make-directories --no-absolute-filenames >>/dev/null 2>&1
-else
-  sed -i '/d-i\ grub-installer\/force-efi-extra-removable/d' /tmp/boot/preseed.cfg
 fi
 
 [[ "$ddMode" == '1' ]] && {
@@ -738,7 +738,7 @@ url --url="$LinuxMirror/$DIST/os/$VER/"
 rootpw --iscrypted $myPASSWORD
 auth --useshadow --passalgo=sha512
 firstboot --disable
-lang en_US
+lang en_US.UTF-8
 keyboard us
 selinux --disabled
 logging --level=info
@@ -749,7 +749,7 @@ vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
+#NODHCP network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
