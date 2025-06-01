@@ -24,7 +24,7 @@ export tmpMirror=''
 export ipAddr=''
 export ipMask=''
 export ipGate=''
-export ipDNS='1.1.1.1 1.0.0.1'
+export ipDNS='1.1.1.1'
 export IncDisk='default'
 export interface=''
 export interfaceSelect='auto'
@@ -39,7 +39,7 @@ export FindDists='0'
 export loaderMode='0'
 export IncFirmware='0'
 export SpikCheckDIST='0'
-export setInterfaceName='1'
+export setInterfaceName='0'
 export UNKNOWHW='0'
 export UNVER='6.4'
 export GRUBDIR=''
@@ -685,7 +685,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
 d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl chrony libgnutls30 libcurl3-gnutls
-d-i pkgsel/exclude string ufw bind9 ntpdate cloud-init systemd-timesyncd systemd-resolved gnutls-bin gnutls-doc guile-gnutls libcurl4-gnutls-dev libgnutls-dane0 libgnutls-openssl27 libgnutls28-dev libgnutlsxx28 libjwt-gnutls-dev libjwt-gnutls0 libneon27-gnutls-dbg libneon27-gnutls-dev libneon27-gnutls libsrt-gnutls-dev libsrt1.4-gnutls libxmlsec1-gnutls lighttpd-mod-gnutls rsyslog-gnutls
+d-i pkgsel/exclude string ufw bind9 ntpdate cloud-init systemd-timesyncd systemd-resolved gnutls-bin gnutls-doc libgnutls-dane0 libgnutlsxx28
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
