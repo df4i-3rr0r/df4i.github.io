@@ -684,7 +684,7 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl chrony libgnutls30 libcurl3-gnutls
+d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl sudo chrony libgnutls30 libcurl3-gnutls
 d-i pkgsel/exclude string ufw bind9 ntpdate cloud-init systemd-timesyncd gnutls-bin gnutls-doc libgnutls-dane0 libgnutlsxx28
 d-i pkgsel/upgrade select none
 
