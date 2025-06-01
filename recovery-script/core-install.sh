@@ -1,6 +1,20 @@
 #!/bin/bash
 
-## Remode By Dyno
+## License: GPL
+## The CXT version of one-click network reinstallation system Magic revision.
+## It can reinstall CentOS, Rocky, Debian, Ubuntu, Oracle and other General Operating Systems (continuously added) over the network in one click.
+## It can reinstall Windwos 2022, 2019, 2016, 2012R2, Windows 10, 11 and other Windows systems (continuously added) via the network in one click.
+## Support GRUB or GRUB2 for installing a clean minimal system.
+## Technical support is provided by the CXT (CXTHHHHH.com). (based on the original version of Vicer)
+
+## Magic Modify version author:
+## Default root password: cxthhhhh.com
+## WebSite: https://cxthhhhh.com
+## Written By CXT (CXTHHHHH.com)
+
+## Original version author:
+## Blog: https://moeclub.org
+## Written By MoeClub.org (Vicer)
 
 export tmpVER=''
 export tmpDIST=''
@@ -13,7 +27,7 @@ export ipGate=''
 export ipDNS='1.1.1.1 1.0.0.1'
 export IncDisk='default'
 export interface=''
-export interfaceSelect=''
+export interfaceSelect='auto'
 export Relese=''
 export sshPORT='22'
 export ddMode='0'
@@ -613,7 +627,7 @@ d-i console-setup/layoutcode string us
 
 d-i keyboard-configuration/xkb-keymap string us
 
-d-i netcfg/choose_interface select auto
+d-i netcfg/choose_interface select $interfaceSelect
 
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
@@ -631,7 +645,6 @@ d-i mirror/country string manual
 d-i mirror/http/hostname string $MirrorHost
 d-i mirror/http/directory string $MirrorFolder
 d-i mirror/http/proxy string
-d-i apt-setup/services-select multiselect
 
 d-i passwd/root-login boolean true
 d-i passwd/make-user boolean false
@@ -641,7 +654,6 @@ d-i user-setup/encrypt-home boolean false
 
 d-i clock-setup/utc boolean true
 d-i time/zone string Asia/Kuala_Lumpur
-d-i clock-setup/ntp-server string pool.ntp.org
 d-i clock-setup/ntp boolean true
 
 d-i preseed/early_command string anna-install libfuse2-udeb fuse-udeb ntfs-3g-udeb libcrypto1.1-udeb libpcre2-8-0-udeb libssl1.1-udeb libuuid1-udeb zlib1g-udeb wget-udeb
@@ -663,7 +675,6 @@ d-i partman-auto/init_automatically_partition select Guided - use entire disk
 d-i partman-auto/choose_recipe select All files in one partition (recommended for new users)
 d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/device_remove_lvm boolean true
-d-i partman-auto/choose_recipe select atomic
 d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman/confirm boolean true
@@ -673,14 +684,15 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl chrony
-d-i pkgsel/exclude string ufw unattended-upgrades cloud-init
+d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl chrony libgnutls30 libcurl3-gnutls
+d-i pkgsel/exclude string ufw bind9 ntpdate cloud-init systemd-timesyncd systemd-resolved gnutls-bin gnutls-doc guile-gnutls libcurl4-gnutls-dev libgnutls-dane0 libgnutls-openssl27 libgnutls28-dev libgnutlsxx28 libjwt-gnutls-dev libjwt-gnutls0 libneon27-gnutls-dbg libneon27-gnutls-dev libneon27-gnutls libsrt-gnutls-dev libsrt1.4-gnutls libxmlsec1-gnutls lighttpd-mod-gnutls rsyslog-gnutls
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
 
 d-i grub-installer/only_debian boolean true
-d-i grub-installer/bootdev string default
+d-i grub-installer/bootdev string $IncDisk
+d-i grub-installer/force-efi-extra-removable boolean true
 d-i finish-install/reboot_in_progress note
 d-i debian-installer/exit/reboot boolean true
 d-i preseed/late_command string	\
@@ -692,7 +704,7 @@ echo '' >>/target/etc/crontab; \
 echo '${setCMD}' >/target/etc/run.sh;
 EOF
 
-if [[ "$PROTO" == 'dhcp' ]]; then 
+if [[ "$loaderMode" != "0" ]] && [[ "$setNet" == '0' ]]; then
   sed -i '/netcfg\/disable_autoconfig/d' /tmp/boot/preseed.cfg
   sed -i '/netcfg\/dhcp_options/d' /tmp/boot/preseed.cfg
   sed -i '/netcfg\/get_.*/d' /tmp/boot/preseed.cfg
@@ -705,6 +717,8 @@ if [[ "$linux_relese" == 'debian' ]]; then
   sed -i '/pkgsel\/update-policy/d' /tmp/boot/preseed.cfg
   sed -i 's/umount\ \/media.*true\;\ //g' /tmp/boot/preseed.cfg
   [[ -f '/tmp/firmware.cpio.gz' ]] && gzip -d < /tmp/firmware.cpio.gz | cpio --extract --verbose --make-directories --no-absolute-filenames >>/dev/null 2>&1
+else
+  sed -i '/d-i\ grub-installer\/force-efi-extra-removable/d' /tmp/boot/preseed.cfg
 fi
 
 [[ "$ddMode" == '1' ]] && {
@@ -749,7 +763,7 @@ vnc
 skipx
 timezone --isUtc Asia/Kuala_Lumpur
 #ONDHCP network --bootproto=dhcp --onboot=on
-#NODHCP network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
+network --bootproto=static --ip=$IPv4 --netmask=$MASK --gateway=$GATE --nameserver=$ipDNS --onboot=on
 bootloader --location=mbr --append="rhgb quiet crashkernel=auto"
 zerombr
 clearpart --all --initlabel 
