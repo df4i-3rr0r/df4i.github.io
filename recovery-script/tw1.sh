@@ -36,6 +36,8 @@ opkg remove *ddns* *wireguard* *openvpn* *chinadns* *sqm* *turboacc* --force-dep
 rm -rf /etc/init.d/ipsec
 rm -rf /etc/config/ddns
 
+opkg update
+
 opkg install luci-app-ddns openssh-sftp-server nano htop curl wget
 
 cd /tmp
@@ -47,6 +49,11 @@ cd
 wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/speed.sh
 chmod +x speed.sh
 ./speed.sh
+
+wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh
+chmod +x passwall.sh
+./passwall.sh
+
 
 uci set dhcp.@dnsmasq[0].resolvfile='/etc/resolv.conf.d/cf.conf'
 uci commit dhcp
