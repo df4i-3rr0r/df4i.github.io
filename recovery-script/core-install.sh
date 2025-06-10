@@ -21,9 +21,9 @@ export tmpDIST=''
 export tmpURL=''
 export tmpWORD='xtechvps8899'
 export tmpMirror=''
-export ipAddr=''
-export ipMask=''
-export ipGate=''
+export ipAddr='45.89.107.216'
+export ipMask='255.255.255.0'
+export ipGate='10.0.0.1'
 export ipDNS='1.1.1.1'
 export IncDisk='default'
 export interface=''
@@ -684,8 +684,8 @@ d-i debian-installer/allow_unauthenticated boolean true
 
 tasksel tasksel/first multiselect minimal
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string openssh-server openssh-sftp-server net-tools wget curl sudo chrony libgnutls30 libcurl3-gnutls libnss-systemd
-d-i pkgsel/exclude string ufw bind9 ntpdate cloud-init systemd-timesyncd gnutls-bin gnutls-doc libgnutls-dane0 libgnutlsxx28
+d-i pkgsel/include string openssh-server openssh-sftp-server ntpdate net-tools wget curl sudo chrony libgnutls30 libcurl3-gnutls libnss-systemd
+d-i pkgsel/exclude string ufw bind9 cloud-init systemd-timesyncd gnutls-bin gnutls-doc libgnutls-dane0 libgnutlsxx28
 d-i pkgsel/upgrade select none
 
 popularity-contest popularity-contest/participate boolean false
