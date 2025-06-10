@@ -9,15 +9,15 @@ DS0
 
 opkg update
 
-opkg install wget curl nano htop sudo
+opkg install wget curl nano htop sudo openssh-sftp-server
 
-opkg remove *ddns* *wireguard* *openvpn* *sqm* *turboacc* --force-depends
+opkg remove *wireguard* *openvpn* *sqm* *turboacc* --force-depends
 
-rm -rf /etc/config/ddns
-
-opkg update
-
-opkg install luci-app-ddns openssh-sftp-server
+rm -rf /etc/resolv.conf
+cat > /etc/resolv.conf <<-DS12
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+DS12
 
 cd /tmp
 wget https://dnbiznet.github.io/recovery-script/luci-theme-neobird_1.99-202201272020_all.ipk
@@ -27,20 +27,15 @@ cd
 
 opkg update
 
-wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh
-chmod +x passwall.sh
-./passwall.sh
-
-opkg update
+wget https://github.com/pru79/pruhaha/raw/refs/heads/main/install_passwall2
+sh install_passwall2
 
 wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/speed.sh
 chmod +x speed.sh
 ./speed.sh
 
-rm -rf /tmp/resolv.conf*
-rm -rf /tmp/resolv.conf.d
-rm -rf /etc/resolv.conf.d
 mkdir /etc/resolv.conf.d
+
 rm -f /etc/resolv.conf.d/cf.conf
 cat > /etc/resolv.conf.d/cf.conf <<-DS1
 nameserver 1.1.1.1
@@ -73,9 +68,6 @@ net.ipv4.tcp_timestamps=1
 net.ipv4.tcp_sack=1
 net.ipv4.tcp_dsack=1
 
-net.ipv6.conf.default.forwarding=1
-net.ipv6.conf.all.forwarding=1
-
 # disable bridge firewalling by default
 net.bridge.bridge-nf-call-arptables=0
 net.bridge.bridge-nf-call-ip6tables=0
@@ -96,6 +88,9 @@ net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 net.ipv6.conf.all.use_tempaddr=0
 net.ipv6.conf.default.use_tempaddr=0
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+net.ipv6.route.flush=1
 DS5
 
 sysctl -p
