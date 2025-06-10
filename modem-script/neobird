@@ -1,0 +1,6 @@
+#!/bin/sh
+cd /tmp
+wget -q https://dnbiznet.github.io/modem-script/luci-theme-neobird_1.99-202201272020_all.ipk
+opkg update && opkg install --nodeps luci-theme-neobird_1.99-202201272020_all.ipk
+cd
+rm -rf /tmp/luci-theme-neobird_1.99-202201272020_all.ipk
