@@ -38,6 +38,9 @@ net.ipv4.tcp_timestamps=1
 net.ipv4.tcp_sack=1
 net.ipv4.tcp_dsack=1
 
+net.ipv6.conf.default.forwarding=1
+net.ipv6.conf.all.forwarding=1
+
 # disable bridge firewalling by default
 net.bridge.bridge-nf-call-arptables=0
 net.bridge.bridge-nf-call-ip6tables=0
@@ -46,7 +49,7 @@ net.bridge.bridge-nf-call-iptables=0
 vm.overcommit_memory=0
 vm.min_free_kbytes=16384
 vm.vfs_cache_pressure=500
-vm.swappines=100
+vm.swappiness=100
 vm.dirty_background_ratio=1
 vm.dirty_ratio=50
 DF11
@@ -57,8 +60,6 @@ net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 net.ipv6.conf.all.use_tempaddr=0
 net.ipv6.conf.default.use_tempaddr=0
-net.ipv6.conf.all.disable_ipv6=1
-net.ipv6.conf.default.disable_ipv6=1
 DS5
 sysctl -p
 
