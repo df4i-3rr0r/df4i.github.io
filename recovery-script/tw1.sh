@@ -20,12 +20,45 @@ nameserver 1.0.0.1
 DS1
 chmod +x /etc/resolv.conf.d/cf.conf
 
+rm -rf /etc/sysctl.d/10-default.conf
+cat > /etc/sysctl.d/10-default.conf <<-DF11
+kernel.panic=3
+kernel.core_pattern=/tmp/%e.%t.%p.%s.core
+
+net.ipv4.conf.default.arp_ignore=1
+net.ipv4.conf.all.arp_ignore=1
+net.ipv4.ip_forward=1
+net.ipv4.icmp_echo_ignore_broadcasts=1
+net.ipv4.icmp_ignore_bogus_error_responses=1
+net.ipv4.igmp_max_memberships=100
+net.ipv4.tcp_fin_timeout=30
+net.ipv4.tcp_keepalive_time=120
+net.ipv4.tcp_syncookies=1
+net.ipv4.tcp_timestamps=1
+net.ipv4.tcp_sack=1
+net.ipv4.tcp_dsack=1
+
+# disable bridge firewalling by default
+net.bridge.bridge-nf-call-arptables=0
+net.bridge.bridge-nf-call-ip6tables=0
+net.bridge.bridge-nf-call-iptables=0
+
+vm.overcommit_memory=0
+vm.min_free_kbytes=16384
+vm.vfs_cache_pressure=500
+vm.swappines=100
+vm.dirty_background_ratio=1
+vm.dirty_ratio=50
+DF11
+
 rm -rf /etc/sysctl.d/12-tcp-bbr.conf
 cat > /etc/sysctl.d/99-bbr.conf <<-DS5
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 net.ipv6.conf.all.use_tempaddr=0
 net.ipv6.conf.default.use_tempaddr=0
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
 DS5
 sysctl -p
 
@@ -35,8 +68,6 @@ opkg remove *ddns* *wireguard* *openvpn* *chinadns* *sqm* *turboacc* --force-dep
 
 rm -rf /etc/init.d/ipsec
 rm -rf /etc/config/ddns
-
-opkg update
 
 opkg install luci-app-ddns openssh-sftp-server nano htop curl wget
 
@@ -50,11 +81,6 @@ wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/spe
 chmod +x speed.sh
 ./speed.sh
 
-wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh
-chmod +x passwall.sh
-./passwall.sh
-
-
 uci set dhcp.@dnsmasq[0].resolvfile='/etc/resolv.conf.d/cf.conf'
 uci commit dhcp
 
@@ -62,4 +88,5 @@ uci set qmodem_ttl.main.enable='1'
 uci commit qmodem_ttl
 
 rm -rf /root/*
+
 reboot
