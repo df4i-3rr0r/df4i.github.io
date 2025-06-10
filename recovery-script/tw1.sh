@@ -9,6 +9,34 @@ DS0
 
 opkg update
 
+opkg install wget curl nano htop sudo
+
+opkg remove *ddns* *wireguard* *openvpn* *sqm* *turboacc* --force-depends
+
+rm -rf /etc/config/ddns
+
+opkg update
+
+opkg install luci-app-ddns openssh-sftp-server
+
+cd /tmp
+wget https://dnbiznet.github.io/recovery-script/luci-theme-neobird_1.99-202201272020_all.ipk
+opkg install luci-theme-neobird_1.99-202201272020_all.ipk
+rm -rf luci-theme-neobird_1.99-202201272020_all.ipk
+cd
+
+opkg update
+
+wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh
+chmod +x passwall.sh
+./passwall.sh
+
+opkg update
+
+wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/speed.sh
+chmod +x speed.sh
+./speed.sh
+
 rm -rf /tmp/resolv.conf*
 rm -rf /tmp/resolv.conf.d
 rm -rf /etc/resolv.conf.d
@@ -22,6 +50,7 @@ chmod +x /etc/resolv.conf.d/cf.conf
 
 rm -rf /etc/sysctl.d/10-default.conf
 cat > /etc/sysctl.d/10-default.conf <<-DF11
+#Default By Dyno
 kernel.panic=3
 kernel.core_pattern=/tmp/%e.%t.%p.%s.core
 fs.suid_dumpable=2
@@ -62,34 +91,14 @@ DF11
 
 rm -rf /etc/sysctl.d/12-tcp-bbr.conf
 cat > /etc/sysctl.d/99-bbr.conf <<-DS5
+#Bbr Tweak By Dyno
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 net.ipv6.conf.all.use_tempaddr=0
 net.ipv6.conf.default.use_tempaddr=0
 DS5
+
 sysctl -p
-
-opkg remove *ddns* *wireguard* *openvpn* *sqm* *turboacc* --force-depends
-
-rm -rf /etc/config/ddns
-
-opkg update
-
-opkg install luci-app-ddns openssh-sftp-server nano htop curl wget
-
-cd /tmp
-wget https://dnbiznet.github.io/recovery-script/luci-theme-neobird_1.99-202201272020_all.ipk
-opkg install luci-theme-neobird_1.99-202201272020_all.ipk
-rm -rf luci-theme-neobird_1.99-202201272020_all.ipk
-cd
-
-opkg update
-
-wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh; chmod +x passwall.sh; ./passwall.sh
-
-wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/speed.sh
-chmod +x speed.sh
-./speed.sh
 
 uci set dhcp.@dnsmasq[0].resolvfile='/etc/resolv.conf.d/cf.conf'
 uci commit dhcp
