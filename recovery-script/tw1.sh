@@ -24,6 +24,12 @@ rm -rf /etc/sysctl.d/10-default.conf
 cat > /etc/sysctl.d/10-default.conf <<-DF11
 kernel.panic=3
 kernel.core_pattern=/tmp/%e.%t.%p.%s.core
+fs.suid_dumpable=2
+
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+
+net.core.bpf_jit_enable=1
 
 net.ipv4.conf.default.arp_ignore=1
 net.ipv4.conf.all.arp_ignore=1
