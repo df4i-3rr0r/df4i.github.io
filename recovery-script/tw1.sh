@@ -11,14 +11,6 @@ opkg update
 
 opkg install wget curl nano htop sudo openssh-sftp-server
 
-opkg remove *wireguard* *openvpn* *sqm* *turboacc* --force-depends
-
-rm -rf /etc/resolv.conf
-cat > /etc/resolv.conf <<-DS12
-nameserver 1.1.1.1
-nameserver 1.0.0.1
-DS12
-
 cd /tmp
 wget https://dnbiznet.github.io/recovery-script/luci-theme-neobird_1.99-202201272020_all.ipk
 opkg install luci-theme-neobird_1.99-202201272020_all.ipk
