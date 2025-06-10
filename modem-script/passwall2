@@ -15,3 +15,4 @@ uci set passwall2.@global_forwarding[0].tcp_redir_ports='1:65535'
 uci commit passwall2
 /etc/init.d/passwall2 restart
 sed -i '/^exit 0/i sleep 5;/etc/init.d/passwall2 restart' /etc/rc.local
+rm -rf /tmp/passwall2
