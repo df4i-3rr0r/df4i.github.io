@@ -62,12 +62,11 @@ net.ipv6.conf.default.disable_ipv6=1
 DS5
 sysctl -p
 
-opkg update
+opkg remove *ddns* *wireguard* *openvpn* *sqm* *turboacc* --force-depends
 
-opkg remove *ddns* *wireguard* *openvpn* *chinadns* *sqm* *turboacc* --force-depends
-
-rm -rf /etc/init.d/ipsec
 rm -rf /etc/config/ddns
+
+opkg update
 
 opkg install luci-app-ddns openssh-sftp-server nano htop curl wget
 
@@ -76,6 +75,10 @@ wget https://dnbiznet.github.io/recovery-script/luci-theme-neobird_1.99-20220127
 opkg install luci-theme-neobird_1.99-202201272020_all.ipk
 rm -rf luci-theme-neobird_1.99-202201272020_all.ipk
 cd
+
+opkg update
+
+wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/passwall.sh; chmod +x passwall.sh; ./passwall.sh
 
 wget -q https://raw.githubusercontent.com/dvh-patcher/system/refs/heads/main/speed.sh
 chmod +x speed.sh
