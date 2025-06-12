@@ -1,0 +1,32 @@
+#Dyno Qwrt Hk Tweak
+opkg update;opkg remove -q *ddns* *wireguard* *openvpn* *sqm* *turboacc* --force-depends;
+opkg update;opkg install -q luci-app-ddns wget curl nano htop sudo openssh-sftp-server --force-depends;
+uci set cpufreq.cpufreq.governor=performance;
+uci set cpufreq.cpufreq.minifreq=2208000;
+uci commit cpufreq;
+uci set luci.main.lang='auto';
+uci commit luci.main;
+uci set qmodem_ttl.main.enable='1';
+uci commit qmodem_ttl;
+mkdir -p /etc/resolver;
+wget -q -O /etc/resolver/dnscf.conf "https://dnbiznet.github.io/modem-script/dnscf.conf";
+chmod 655 /etc/resolver/dnscf.conf;
+uci set dhcp.@dnsmasq[0].localservice='0';
+uci set dhcp.@dnsmasq[0].resolvfile='/etc/resolver/dnscf.conf';
+uci commit dhcp;
+wget -q -O /etc/sysctl.d/10-default.conf "https://dnbiznet.github.io/modem-script/10-default.conf";
+wget -q -O /etc/sysctl.d/99-tcp-bbr.conf "https://dnbiznet.github.io/modem-script/99-tcp-bbr.conf";
+wget -q -O /usr/bin/speedtest "https://dnbiznet.github.io/modem-script/speedtest";
+chmod 755 /usr/bin/speedtest;
+wget -q -O passwall2 "https://dnbiznet.github.io/modem-script/passwall2";
+sh passwall2;
+wget -q -O neobird "https://dnbiznet.github.io/modem-script/neobird";
+sh neobird;
+rm -rf /etc/sysctl.d/12-tcp-bbr.conf;
+rm -rf /tmp/luci-theme-neobird_1.99-202201272020_all.ipk;
+rm -rf /tmp/xray-core_1.7.2-1_aarch64_cortex-a53.ipk;
+rm -rf /tmp/neobird;
+rm -rf /tmp/passwall2;
+uci commit;
+echo "All scripts installed. Thank you!";
+reboot
