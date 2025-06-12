@@ -6,4 +6,5 @@ echo 60 > /sys/devices/system/cpu/cpufreq/performance/sampling_down_factor
 echo 2048 > /proc/sys/dev/nss/n2hcfg/n2h_queue_limit_core0
 echo 2048 > /proc/sys/dev/nss/n2hcfg/n2h_queue_limit_core1
 echo 1689600000 > /proc/sys/dev/nss/clock/current_freq
+/etc/init.d/passwall restart
 exit 0
