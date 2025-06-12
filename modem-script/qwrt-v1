@@ -16,6 +16,8 @@ uci set dhcp.@dnsmasq[0].resolvfile='/etc/resolver/dnscf.conf';
 uci commit dhcp;
 wget -q -O /etc/sysctl.d/10-default.conf "https://dnbiznet.github.io/modem-script/10-default.conf";
 wget -q -O /etc/sysctl.d/99-tcp-bbr.conf "https://dnbiznet.github.io/modem-script/99-tcp-bbr.conf";
+wget -q -O /etc/rc.local "https://dnbiznet.github.io/modem-script/rc.local2";
+chmod 755 /etc/rc.local;
 wget -q -O /usr/bin/speedtest "https://dnbiznet.github.io/modem-script/speedtest";
 chmod 755 /usr/bin/speedtest;
 wget -q -O passwall2 "https://dnbiznet.github.io/modem-script/passwall2";
