@@ -1,6 +1,8 @@
 #BinBash
 #Dyno
 echo "AT+CFUN=1" > /dev/ttyUSB3
+echo 25 > /sys/devices/system/cpu/cpufreq/performance/up_threshold
+echo 60 > /sys/devices/system/cpu/cpufreq/performance/sampling_down_factor
 echo 2048 > /proc/sys/dev/nss/n2hcfg/n2h_queue_limit_core0
 echo 2048 > /proc/sys/dev/nss/n2hcfg/n2h_queue_limit_core1
 exit 0
