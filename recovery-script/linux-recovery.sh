@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 
 CXTaddLine="$1"
 CXTaddVER=""
