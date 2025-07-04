@@ -642,7 +642,7 @@ function setNormalRecipe() {
 	[[ -n "$3" && $(echo "$3" | grep -o '[0-9]') ]] && swapSpace="$setSwap" || swapSpace='0'
 	if [[ "$1" == 'debian' ]] || [[ "$1" == 'kali' ]]; then
 		[[ "$lowMemMode" == "1" ]] && {
-			[[ -z "$swapSpace" || "$swapSpace" -lt "512" ]] && swapSpace="512"
+			[[ -z "$swapSpace" || "$swapSpace" -lt "1000" ]] && swapSpace="1000"
 		}
 		if [[ -n "$swapSpace" && "$swapSpace" -gt "0" ]]; then
 			swapSpace=$(awk 'BEGIN{print '${swapSpace}'*1.05078125 }' | cut -d '.' -f '1')
@@ -1119,7 +1119,7 @@ function checkSys() {
 		rm -rf /root/Fuck_Aliyun.sh
 	}
 
-	rm -rf /swapspace
+	rm -rf /swapfile
 	# Allocate 1G temporary swap to provent yum dead.
 	if [[ ! -e "/swapspace" ]]; then
 		fallocate -l 1G /swapfile
