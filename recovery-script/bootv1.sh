@@ -1,24 +1,7 @@
 #!/bin/bash
 ##
-## License: GPL
-## It can reinstall Debian, Ubuntu, Kali, AlpineLinux, CentOS, AlmaLinux, RockyLinux, Fedora and Windows OS via network automatically without any other external measures and manual operations.
-## Default root password: LeitboGi0ro
-## Written By MoeClub.org
-## Blog: https://moeclub.org
-## Modified By 秋水逸冰
-## Blog: https://teddysun.com/
-## Modified By VPS收割者
-## Blog: https://www.idcoffer.com/
-## Modified By airium
-## Blog: https://github.com/airium
-## Modified By 王煎饼
-## Github: https://github.com/bin456789/
-## Modified By nat.ee
-## Forum: https://hostloc.com/space-uid-49984.html
-## Modified By Bohan Yang
-## Twitter: https://twitter.com/brentybh
-## Modified By Leitbogioro
-## Blog: https://www.zhihu.com/column/originaltechnic
+## Script Os Patch Remod By DnbizNet
+## Default root password: xtechvps8899
 
 # color
 underLine='\033[4m'
@@ -32,7 +15,7 @@ plain='\033[0m'
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
-export tmpWORD='xtechvps8899'
+export tmpWORD=''
 export tmpMirror=''
 export tmpDHCP=''
 export targetRelese=''
@@ -42,11 +25,11 @@ export setIpStack=''
 export ipAddr=''
 export ipMask=''
 export ipGate=''
-export ipDNS='8.8.8.8 1.1.1.1'
+export ipDNS='1.1.1.1'
 export ip6Addr=''
 export ip6Mask=''
 export ip6Gate=''
-export ip6DNS='2001:4860:4860::8888 2606:4700:4700::1111'
+export ip6DNS='2606:4700:4700::1111'
 export IncDisk=''
 export interface=''
 export interfaceSelect=''
@@ -113,58 +96,9 @@ while [[ $# -ge 1 ]]; do
 		targetRelese='Ubuntu'
 		shift
 		;;
-	-kali | -Kali)
-		shift
-		Relese='Kali'
-		tmpDIST="$1"
-		shift
-		;;
-	-centos | -CentOS | -cent | -Cent)
-		shift
-		Relese='CentOS'
-		tmpDIST="$1"
-		shift
-		;;
-	-rocky | -rockylinux | -RockyLinux)
-		shift
-		Relese='RockyLinux'
-		tmpDIST="$1"
-		shift
-		;;
-	-alma | -almalinux | -AlmaLinux)
-		shift
-		Relese='AlmaLinux'
-		tmpDIST="$1"
-		shift
-		;;
-	-fedora | -Fedora)
-		shift
-		Relese='Fedora'
-		tmpDIST="$1"
-		shift
-		;;
-	-alpine | -alpinelinux | -AlpineLinux | -alpineLinux)
-		shift
-		Relese='AlpineLinux'
-		tmpDIST="$1"
-		shift
-		;;
-	-win | -windows)
-		shift
-		ddMode='1'
-		finalDIST="$1"
-		targetRelese='Windows'
-		shift
-		;;
 	-lang | -language)
 		shift
 		targetLang="$1"
-		shift
-		;;
-	-dd | --image)
-		shift
-		ddMode='1'
-		tmpURL="$1"
 		shift
 		;;
 	--networkstack)
@@ -254,12 +188,6 @@ while [[ $# -ge 1 ]]; do
 		shift
 		isMirror='1'
 		tmpMirror="$1"
-		shift
-		;;
-	-rdp)
-		shift
-		setRDP='1'
-		WinRemote="$1"
 		shift
 		;;
 	-raid)
@@ -487,12 +415,6 @@ function getIPv4Address() {
 	actualIp4Prefix=$(ip -4 route show scope link | grep -iv "warp\|wgcf\|wg[0-9]\|docker[0-9]" | grep -w "$interface4" | grep -w "$ip4RouteScopeLink" | head -n 1 | awk '{print $1}' | awk -F '/' '{print $2}')
 	[[ -z "$actualIp4Prefix" ]] && actualIp4Prefix="$ipPrefix"
 	actualIp4Subnet=$(netmask "$actualIp4Prefix")
-	# In most situation, at least 99.9% probability, the first hop of the network should be the same as the available gateway.
-	# But in 0.1%, they are actually different.
-	# Because one of the first hop of a tested machine is 5.45.72.1, I told Debian installer this router as a gateway
-	# But installer said the correct gateway should be 5.45.76.1, in a typical network, for example, your home,
-	# the default gateway is the same as the first route hop of the machine, it may be 192.168.0.1.
-	# If possible, we should configure out the real available gateway of the network.
 	FirstRoute=$(ip -4 route show default | grep -iv "warp\|wgcf\|wg[0-9]\|docker[0-9]" | grep -w "via" | grep -w "dev $interface4*" | head -n 1 | awk -F " " '{for (i=3;i<=NF;i++)printf("%s ", $i);print ""}' | awk '{print$1}')
 	# We should find it in ARP, the first hop IP and gateway IP is managed by the same device, use device mac address to configure it out.
 	RouterMac=$(arp -n | grep "$FirstRoute" | awk '{print$3}')
@@ -536,44 +458,9 @@ function getIPv4Address() {
 
 # $1 is "$ipAddr", $2 is "$ipGate".
 function transferIPv4AddressFormat() {
-	# Some cloud providers like Godaddy, Arkecx, Hetzner(include DHCP) etc, the subnet mask of IPv4 static network configuration of their original template OS is incorrect.
-	# The following is the sample:
-	#
-	# auto eth0
-	#   iface eth0 inet static
-	#     address 190.168.23.175
-	#     netmask 255.255.255.240
-	#     dns-nameservers 8.8.8.8 8.8.4.4
-	#     up ip -4 route add default via 169.254.0.1 dev eth0 onlink
-	#
-	# The netmask tells the total number of IP in the network is only 15(240 - 255),
-	# but we obsessed that there are more than 15 IPv4 addresses between 169.254.0.1 and 190.168.23.175 clearly.
-	# So if netmask is 255.255.255.240(prefix is 28), the computer only find IP between 190.168.23.160 and 190.168.23.175,
-	# the gateway 169.254.0.1 is obviously not be included in this range.
-	# So we need to expand the range of the netmask(reduce the value number of the prefix) to make sure the IPv4 gateway can be contained.
-	# If this mistake has not be repaired, Debian installer will return error "untouchable gateway".
-	# DHCP IPv4 network(even IPv4 netmask is "32") may not be effected by this situation.
-	# The following consulted calculations are calculated by Vultr IPv4 subnet calculator, reference: https://www.vultr.com/resources/subnet-calculator/
 	ipv4SubnetCertificate "$1" "$2"
 	ipPrefix="$tmpIpMask"
 	ipMask=$(netmask "$tmpIpMask")
-	# Some servers' provided by Hetzner are so confused because the IPv4 configurations of them are static but they are not fitted with standard, here is a sample:
-	#
-	# auto ens3
-	# iface ens3 inet static
-	#     address: 89.163.208.5
-	#     netmask: 255.255.255.0
-	#     broadcast +
-	#     up ip -f inet route add 169.254.0.1 dev ens3
-	#     up ip -f inet route add default via 169.254.0.1 dev ens3
-	#
-	# The A class of address and gateway are entirely different, although we should make sure the value of the suggested subnet mask is "128.0.0.1"(prefix "1")
-	# to expand IPv4 range as large as possible, but in above situation, the largest IPv4 range is from 0.0.0.0 to 127.255.255.255, the IPv4 gate "169.254.0.1"
-	# can't be included, so the reserve approach is to get the result of "ip -4 route show scope link"(89.163.208.0/24) to ensure the correct subnet and gateway,
-	# then we can fix these weird settings from incorrect network router.
-	# IPv4 network from Hetzner support dhcp even though it's configurated by static in "/etc/network/interfaces".
-	# ip4RangeFirst=`ipv4Calc "$1" "$actualIp4Prefix" | grep "FirstIP:" | awk '{print$2}' | cut -d'.' -f1`
-	# ip4RangeLast=`ipv4Calc "$1" "$actualIp4Prefix" | grep "LastIP:" | awk '{print$2}' | cut -d'.' -f1`
 	ip4AddrFirst=$(echo $1 | cut -d'.' -f1)
 	ip4AddrSecond=$(echo $1 | cut -d'.' -f2)
 	ip4GateFirst=$(echo $2 | cut -d'.' -f1)
@@ -650,17 +537,6 @@ function ipv4Calc() {
 	echo -e "Network:   $tmpNetwork\nBroadcast: $tmpBroadcast\nFirstIP:   $FirstIP\nLastIP:    $LastIP\n"
 }
 
-# Unsuitable settings of subnet will cause not only "Death Red" of Debian installer which is called "unreachable gateway"
-# but also contributes to some additional negative results as of if it's wider than the actual,
-# this host will lose communications with some other servers which are serving in public internet because these will be treated as intranet hosts.
-# To the opposite, if the subnet of one server is narrower than the actual, this host will lose communications with some local hosts because these will be treated as public servers.
-# As an environment of a VPS, a narrower subnet causes less bad subsequentials than a wider prefer because VPS is usually be used by individual.
-# If it's in a cluster such as home, office or company which is a place of that usually needs to transmit data with other hosts within LAN(local area network),
-# the better opinion is to setting a wider value if you don't know them well.
-# To figure out the most suitable subnet of a class segment of one IP or just a specific IP address,
-# you can visit: https://bgp.tools/ which allows you to inquire announced allocations of IP addresses that were assigned by Internet Organizations.
-#
-# $1 is "$ipAddr", $2 is "$ipGate"
 function ipv4SubnetCertificate() {
 	# If the IP and gateway are not in the same IPv4 A class, the prefix of netmask should be "1", transfer to whole IPv4 address is 128.0.0.1
 	# The range of 190.168.23.175/1 is 128.0.0.0 - 255.255.255.255, the gateway 169.254.0.1 can be included.
@@ -701,19 +577,6 @@ function getDisk() {
 	# All numbers of disks' statistic of this server.
 	disksNum=$(echo $AllDisks | grep -o "/dev/*" | wc -l)
 
-	# Some cloud providers using first SCSI/SATA device like "sda" to mount ISO image instead of using "sr0":
-	#
-	# root@node:~# lsblk -ipf
-	# NAME        FSTYPE  FSVER            LABEL  UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
-	# /dev/sda    iso9660 Joliet Extension cidata 2023-07-13-09-35-07-00
-	# /dev/sr0
-	# /dev/vda
-	# |-/dev/vda1
-	# |-/dev/vda2 vfat    FAT32                   0BBB-E1CA                            119.9M  0%     /boot/efi
-	# `-/dev/vda3 xfs                             0c93f6bc-ef9c-468d-be02-84b4a70d3678 44.4G   11%    /
-	#
-	# Because of "sda" can't be written, If system is selected to install on "sda", the installation will meet a fatal,
-	# So we should exclude all these devices.
 	for ((d = 1; d <= $disksNum; d++)); do
 		currentDisk=$(echo "$AllDisks" | cut -d' ' -f$d)
 		checkIfIsoPartition=$(lsblk -ipf | grep "$currentDisk" | head -n 1 | awk '{print $2}' | grep -i "iso")
@@ -911,12 +774,7 @@ d-i partman-basicfilesystems/no_swap boolean false
 d-i partman-auto/method string raid
 d-i partman-auto/disk string $3
 d-i mdadm/boot_degraded boolean true")
-			# In environment of UEFI firmware motherboard computers, it's not suggested to creat any Raid recipe for "/boot/efi" partition,
-			# in any virtual machine which created by VMware Workstation Pro, version up to the current 17.0.2(2023/6), host OS is Windows 10 Enterprise x64,
-			# we must assign an additional Raid 1 recipe for "/boot" partition to prevent the case of following to happen：
-			# otherwise except of the first reboot of the Debian 12 installed soon, the next time hard reboot the system, it will failed into "GNU GRUB version 2.0x"
-			# and we must type "exit" to fallback to "Boot Manager", select and enter the default opinion of "Boot normally" and then find that Debian can be booted by grub.
-			# This is a particularly fatal for those servers which has no permission to access VNC in website back-end management and impossible to manipulate UEFI boot manager to boot the system normally.
+
 			if [[ "$EfiSupport" == "enabled" ]]; then
 				FormatDisk=$(echo -e "$RaidRecipes
 d-i partman-auto-raid/recipe string     \
@@ -940,14 +798,7 @@ d-i partman-auto/expert_recipe string multiraid ::                 \
     100  200 -1   raid               \$primary{ } method{ raid } .
 ")
 			fi
-			# Reference: https://github.com/airium/Linux-Reinstall/blob/master/install-raid0.sh
-			#            https://www.debian.org/releases/bookworm/example-preseed.txt
-			#            https://www.cnblogs.com/zhangshan-log/articles/14542166.html
-			#            https://gist.github.com/jnerius/6573343
-			#            https://gist.github.com/bearice/331a954d86d890d9dbeacdd7de3aabe8
-			#            https://lala.im/7911.html
-			#            https://github.com/office-itou/Linux/blob/master/installer/source/preseed_debian.cfg
-			#            https://qiita.com/YasuhiroABE/items/ff233459035d8187263d
+
 		elif [[ "$4" == 'centos' ]] || [[ "$4" == 'rockylinux' ]] || [[ "$4" == 'almalinux' ]] || [[ "$4" == 'fedora' ]]; then
 			tmpKsAllDisks=$(echo "$3" | sed 's/\/dev\///g')
 			ksRaidVolumes=()
@@ -999,10 +850,7 @@ raid / --fstype="xfs" --device="root" --level="$1" ${ksRaidVolumes[2]}
 			fi
 			FormatDisk="${ksRaidConfigs}
 ${ksRaidRecipes}"
-			# Reference: <Example 27.4. Using the raid Kickstart command>. https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/sect-kickstart-syntax
-			#            https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/sect-kickstart-examples
-			#            https://gist.github.com/micmoyles/587131aa19089e5c18916949c26b65e7
-			#            <4.3.3.1. ソフトウェアRAID1でのシステムパーティションの作成>. https://dl.acronis.com/u/software-defined/html/AcronisCyberInfrastructure_3_5_installation_guide_ja-JP/installing-using-pxe/creating-kickstart-file.html#kickstart-file-example
+
 		else
 			echo -ne "\n[${red}Warning${plain}] Raid $1 recipe is not supported by target system!\n"
 			exit 1
@@ -1017,11 +865,6 @@ function getUserTimeZone() {
 		[[ -z "$loginUser" ]] && loginUser="root"
 		# "azureuser" can't be shown compeletely in output of "netstat" and it's the default username in official template of Azure.
 		[[ "${#loginUser}" -ge "7" ]] && loginUser=$(echo ${loginUser:0:7})
-		# Alpine Linux doesn't support "who am i".
-		# In some situations, there are several users with different IPs to connect to server by ssh service,
-		# So we need to filter a list of "Send-Q" and IPs from netstat and sort from largest to smallest by "Sent-Q" to ensure which IP is the current user,
-		# because the "Sent-Q" can record the data packs which IP is active for current ssh user.
-		# The same as for IPv6s.
 		GuestIP=$(netstat -naputeoW | grep -i 'established' | grep -i 'sshd: '$loginUser'' | grep -iw '^tcp\|udp' | awk '{print $3,$5}' | sort -t ' ' -k 1 -rn | awk '{print $2}' | head -n 1 | cut -d':' -f'1')
 		if [[ ! -z "$GuestIP" ]]; then
 			checkIfIpv4AndIpv6IsLocalOrPublic "$GuestIP" ""
@@ -1040,7 +883,7 @@ function getUserTimeZone() {
 			}
 		fi
 		for Count in "$2$GuestIP" "$3$GuestIP" "$4$GuestIP" "$5$GuestIP/json/" "$6" "$7" "$8"; do
-			[[ "$TimeZone" == "Asia/Shanghai" ]] && break
+			[[ "$TimeZone" == "Asia/Kuala_Lumpur" ]] && break
 			if [[ "$Count" =~ ^[a-zA-Z0-9]+$ ]]; then
 				tmpApi=$(echo -n "$Count" | base64 -d)
 				Count="https://api.ipgeolocation.io/timezone?apiKey=$tmpApi&ip=$GuestIP"
@@ -1049,10 +892,10 @@ function getUserTimeZone() {
 			checkTz=$(echo $TimeZone | cut -d'/' -f 1)
 			[[ -n "$checkTz" && "$checkTz" =~ ^[a-zA-Z] ]] && break
 		done
-		[[ -z "$TimeZone" ]] && TimeZone="Asia/Tokyo"
+		[[ -z "$TimeZone" ]] && TimeZone="Asia/Kuala_Lumpur"
 	else
 		echo $(timedatectl list-timezones) >>"$1"
-		[[ $(grep -c "$TimeZone" "$1") == "0" || ! "/usr/share/zoneinfo/$1" ]] && TimeZone="Asia/Tokyo"
+		[[ $(grep -c "$TimeZone" "$1") == "0" || ! "/usr/share/zoneinfo/$1" ]] && TimeZone="Asia/Kuala_Lumpur"
 		rm -rf "$1"
 	fi
 }
@@ -1074,16 +917,16 @@ function checkEfi() {
 	fi
 }
 
-# $1 is "/boot/grub/", $2 is "/boot/grub/", $3 is "/etc/", $4 is "grub.cfg", $5 is "grub.conf", $6 is "/boot/efi/EFI/"
+# $1 is "/boot/grub/", $2 is "/boot/grub2/", $3 is "/etc/", $4 is "grub.cfg", $5 is "grub.conf", $6 is "/boot/efi/EFI/"
 # In some templates of Redhat series 7-8, UEFI firmware from Hetzner and etc. , there are two directions of grub configure files like:
 #
 # /boot/efi/EFI/rocky/grub.cfg
-# /boot/grub/grub.cfg
+# /boot/grub2/grub.cfg
 #
 # The contents of the above two files are almost equal, but the new boot menuentry which we need to write in file "/etc/grub.d/40_custom"
-# can only valid after reboot by using "grub-mkconfig -o /boot/efi/EFI/rocky/grub.cfg", "grub-mkconfig -o /boot/grub/grub.cfg" doesn't cause any effect,
+# can only valid after reboot by using "grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg", "grub2-mkconfig -o /boot/grub2/grub.cfg" doesn't cause any effect,
 # So in this situation, to find out the valid grub config file like "/boot/efi/EFI/rocky/grub.cfg" at first is necessary.
-# For Redhat series 9 and later, including Fedora 36+, the valid direction of grub config files are unified back to "/boot/grub/grub.cfg" now,
+# For Redhat series 9 and later, including Fedora 36+, the valid direction of grub config files are unified back to "/boot/grub2/grub.cfg" now,
 # so we won't have to consider the troubles which were caused by Redhat 7-8 series's abnormal settings.
 function checkGrub() {
 	GRUBDIR=""
@@ -1111,8 +954,8 @@ function checkGrub() {
 	fi
 	GRUBDIR=$(echo ${GRUBDIR%?})
 	if [[ $(awk '/menuentry*/{print NF}' $GRUBDIR/$GRUBFILE | head -n 1) -ge "1" ]] || [[ $(awk '/feature*/{print $a}' $GRUBDIR/$GRUBFILE | head -n 1) != "" ]] || [[ $(awk '/insmod*/{print $a}' $GRUBDIR/$GRUBFILE | head -n 1) != "" ]]; then
-		if [[ -n $(grep -w "grub-.*" $GRUBDIR/$GRUBFILE) ]] || [[ $(type grub-mkconfig) != "" ]]; then
-			GRUBTYPE="isgrub"
+		if [[ -n $(grep -w "grub2-.*" $GRUBDIR/$GRUBFILE) ]] || [[ $(type grub2-mkconfig) != "" ]]; then
+			GRUBTYPE="isGrub2"
 		elif [[ -n $(grep -w "grub-.*" $GRUBDIR/$GRUBFILE) ]] || [[ $(type grub-mkconfig) != "" ]]; then
 			GRUBTYPE="isGrub1"
 		elif [[ "$CurrentOS" == "CentOS" || "$CurrentOS" == "OracleLinux" ]] && [[ "$CurrentOSVer" -le "6" ]]; then
@@ -1121,21 +964,6 @@ function checkGrub() {
 	fi
 }
 
-# We found out an expedite and critical bug of Alpine Linux 3.19+ and edge(based on testing version of 3.20 at Mar. 2024) is that
-# when restarting Ubuntu 22.04 or Redhat series to boot on grub in order to start Alpine's netboot kernel will be failed because of Alpine was updated
-# the new grub version of 2.12 and added a new parameter of 'fwsetup --is-supported' but it could not be recognized by grub 2.06 only on arm64 hardware.
-# Debian 12 was not effected.
-#
-# A valid solution is to download an always up-to-date 'grub.efi' file which offered by OpenSUSE and replace the original one before restart.
-# Grub 2.12 is compatible with 2.06 .
-#
-# In official image of Ubuntu 22.04 provided by Hetzner arm64, directory of "/boot/efi/EFI/ubuntu/" was not existed, we should use "grub-install" to rebuild it.
-#
-# http://ftp.kddilabs.jp/pub/debian/dists/bookworm/main/installer-arm64/current/images/netboot/debian-installer/arm64/grubaa64.efi
-#
-# Reference: https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.20.0
-#            https://gitlab.alpinelinux.org/alpine/aports/-/issues/15263
-#            https://fosstodon.org/@alpinelinux/111703786706332100
 function checkAndReplaceEfiGrub() {
 	if [[ "$VER" == "aarch64" || "$VER" == "arm64" ]] && [[ "$EfiSupport" == "enabled" ]] && [[ "$linux_relese" == 'alpinelinux' ]]; then
 		[[ "$AlpineVer1" == "3" && "$AlpineVer2" -ge "19" ]] || [[ "$DIST" == "edge" ]] && {
@@ -1158,22 +986,6 @@ function checkAndReplaceEfiGrub() {
 	fi
 }
 
-# $1 is "$VER".
-# For AWS arm64, "console=tty1 console=ttyS0,115200n8" must be added to menuentry of the grub in order to successfully rebooting to the netboot installer kernel and viewing graphis on serial console.
-# Note: When booting into a new grub menuentry that we generated, this is not suitable for amd64 architecture otherwise it will cause boot with "RETBleed attacks, data leaks possible!" and failed.
-#       Arm64 instances of Oracle Cloud need "console=tty1".
-#       Guest video display will be disabled on VNC of Oracle Cloud if arm64 cloud kernel installed.
-#       Native Debian installation and generic cloud image of Debian will boot failed on arm64 instance of AWS EC2 because of missing drivers of ssd.
-#
-# Serial console parameters of default grub in official cloud images of several linux distributions:
-# Debian 12 amd64:           console=tty0 console=ttyS0,115200 earlyprintk=ttyS0,115200 consoleblank=0
-# AlmaLinux 9.2 arm64:       console=tty0 console=ttyS0,115200n8
-# RockyLinux 9.2 arm64:      console=ttyS0,115200n8
-# Ubuntu 22.04+ amd/arm64:   console=tty1 console=ttyS0
-# For Ampere A1 arm64 processor, "console=ttyS0" is necessary.
-# Serial console parameters of "yitian 710" arm64 processor in servers of AlibabaCloud ECS:
-# Ubuntu 18.04+ arm64:       console=tty0 console=ttyAMA0,115200n8
-# Cloud images of Ubuntu 20.04-22.04 will boot fail on "yitian 710".
 function checkConsole() {
 	for ttyItems in "console=tty" "console=ttyAMA" "console=ttyS"; do
 		[[ $(grep "$ttyItems" $GRUBDIR/$GRUBFILE) ]] && {
@@ -1196,23 +1008,12 @@ function checkConsole() {
 
 # $1 is $linux_relese, $2 is $RedHatSeries, $3 is $targetRelese
 function checkMem() {
-	# "dmesg" is most accurate to detect the actually valuable memory.
-	# Reference: https://blog.csdn.net/imliuqun123/article/details/126120360
-	# The constant ratio of threshold value(triggering the following conditions) and nominal value(the space of the memory which announced by cloud provider) is coefficient of "0.99".
-	# If it can't be divisible by number "4", we'll take a value that is the multiple of 4 and litter less than the former one.
 	TotalMem=$(($(dmesg | grep -i 'memory' | grep -i 'available' | awk -F ':' '{print $2}' | awk '{print $1}' | cut -d '/' -f 2 | tr -d "a-zA-Z") / 1024))
 	# Alternate methods but not clearly accurate for example "kdump" service occupied a part of memory.
 	[[ -z "$TotalMem" ]] && TotalMem=$(lsmem -b | grep -i "online memory" | awk '{print $NF/1024/1024}')
 	[[ -z "$TotalMem" ]] && TotalMem=$(($(cat /proc/meminfo | grep "^MemTotal:" | sed 's/kb//i' | grep -o "[0-9]*" | awk -F' ' '{print $NF}') / 1024))
 	[[ -z "$TotalMem" ]] && TotalMem=$(free -m | grep -wi "mem*" | awk '{printf $2}')
 
-	# "lowmem=+0, 1 or 2" is only for Debian/Kali.
-	# "lowmem=+2" is dangerous because it will cause net-installer-kernel booting failed in any memory capacity.
-	# "lowmem=+1" will disable many features including load other drivers to save memory to make installation successful.
-	# "lowmem=+0" is to avoid Debian installer to enable low memory mode by force so that it can urge Debian installer to read "d-i non-free-firmware" from "preseed.cfg" to load many drivers like NVME disks to improve hardware compatibility, tested succeed on 512MB memory servers with Debian, Kali.
-	# The actual available capacity of memory on AWS ec2 arm64 t4g model is 472mb in spite of the hardware which was announced by Amazon is "0.5G"
-	# so that in this situation, distributing 512mb swap for target machine is necessary to avoid of installing linux kernel will meet a fatal for Debian series.
-	# I decided to set a baseline of 672mb(any ram of current machine is lower than this) to deal with it at current(2023.11).
 	[[ "$1" == 'debian' ]] || [[ "$1" == 'ubuntu' ]] || [[ "$1" == 'kali' ]] && {
 		[[ "$TotalMem" -le "672" ]] && lowMemMode="1"
 		if [[ "$TotalMem" -le "448" ]]; then
@@ -1229,18 +1030,6 @@ function checkMem() {
 			}
 		}
 	}
-	# Without the function of OS re-installation templates in control panel which provided by cloud companies(many companies even have not).
-	# A independent VPS with only one hard drive is lack of the secondary hard drive to format and copy new OS file to main hard drive.
-	# So PXE installation need to use memory as a 'hard drive' temporary.
-	# For redhat series, the main OS installation file is 'squashfs.img', for example, this is the link of rockylinux 8 LiveOS iso file:
-	# http://dl.rockylinux.org/pub/rocky/8/Live/x86_64/Rocky-8-MATE-x86_64-latest.iso
-	# If you download and mount it, you will found that the size of '/LiveOS/squashfs.img' is 1.55GB!
-	# It means in first step of netboot installation, this 1.55GB file will be all downloaded and loaded in memory!
-	# So and consider other install programs if necessary, even 2GB memory is not enough, 2.5GB only just pass, it's so ridiculous!
-	# Debian 11 PXE installation will be able in low memory mode just 512M, why redhat loves swallow memory so much, is shame on you!
-	# Redhat 9 slightly improved the huge occupy of the memory, 2GB RAM machine can run it successfully, but CentOS 9-stream needs 2.5GB RAM more.
-	# Technology companies usually add useless functions and redundant code in new version of software increasingly.
-	# They never optimize or improve it, just tell users they need to pay more to expand their hardware performance and adjust to the endless demand of them. it's not a correct decision.
 	[[ "$setMemCheck" == '1' ]] && {
 		[[ "$1" == 'fedora' || "$1" == 'rockylinux' || "$1" == 'almalinux' || "$1" == 'centos' ]] && {
 			[[ "$TotalMem" -le "448" ]] && {
@@ -1331,12 +1120,13 @@ function checkSys() {
 	}
 
 	rm -rf /swapspace
-	# Allocate 512 MB temporary swap to provent yum dead.
+	# Allocate 1G temporary swap to provent yum dead.
 	if [[ ! -e "/swapspace" ]]; then
-		fallocate -l 512M /swapspace
-		chmod 600 /swapspace
-		mkswap /swapspace
-		swapon /swapspace
+		fallocate -l 1G /swapfile
+		chmod 600 /swapfile
+		mkswap /swapfile
+		swapon /swapfile
+		   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 		# Prefer to divert temporary data from RAM to virtual memory when there are 70% left and below of RAM to pull out a biggest effort to make sure the allowance of RAM is sufficient for installing dependence.
 		# In RAM that less and equal than 512 MB environment, the occupation of "yum / dnf" process could reach to nearly 49% at highest, the original value of swappiness in official templates of Simple Application Servers from Alibaba Cloud is "0".
 		# The default number of this value is "60" for a standard Linux distribution like Debian/Kali/Redhat series, it's "90" on Alpine.
@@ -1480,7 +1270,7 @@ function checkSys() {
 			fi
 			yum install dnf -y
 			# Run dnf update and install components.
-			# In official template of AlmaLinux 9 of Linode, "tuned" must be installed otherwise "grub-mkconfig" can't work formally.
+			# In official template of AlmaLinux 9 of Linode, "tuned" must be installed otherwise "grub2-mkconfig" can't work formally.
 			# Reference: https://phanes.silogroup.org/fips-disa-stig-hardening-on-centos9/
 			dnf install epel-release -y
 			dnf install bind-utils cpio curl dmidecode dnsutils efibootmgr file gzip jq net-tools openssl redhat-lsb syslinux tuned util-linux virt-what wget xz --skip-broken -y
@@ -2128,17 +1918,6 @@ function collectAllIpv6Addresses() {
 			i6Addrs[${#i6Addrs[@]}]=$tmpIp6
 		done
 		if [[ "$IPStackType" == "IPv6Stack" ]] || [[ "$IPStackType" == "BiStack" && -n "$interface4" && -n "$interface6" && "$interface4" != "$interface6" ]]; then
-			# A sample result of the following arrays which were programmed by "for" loops:
-			#
-			# ${i6Addrs[@]}                         : 2606:a8c0:3:6f::b/64 2606:a8c0:3:6f::a/64 2606:a8c0:3::64/128
-			# ${allI6AddrsWithoutSuffix[@]}         : 2606:a8c0:3:6f::b 2606:a8c0:3:6f::a 2606:a8c0:3::64
-			# ${allI6AddrsWithUltimateFormat[@]}    : 2606:a8c0:0003:006f:0000:0000:0000:000b 2606:a8c0:0003:006f:0000:0000:0000:000a 2606:a8c0:0003:0000:0000:0000:0000:0064
-			# ${allI6AddrsWithOmittedClassesNum[@]} : 3 3 4
-			# $omittedClassesMaxNum                 : 4
-			# $mainIp6Index                         : 2
-			# $i6Addr                               : 2606:a8c0:3::64/128
-			#
-			# To find out the segment with the largest range of one IPv6 in all of the IPv6s as default to config IPv6 network in netboot environment for machines of IPv6 stack.
 			allI6AddrsWithoutSuffix=()
 			for tmpIp6 in ${i6Addrs[@]}; do
 				tmpIp6=$(echo $tmpIp6 | cut -d'/' -f1)
@@ -2167,56 +1946,6 @@ function collectAllIpv6Addresses() {
 	}
 }
 
-# Debian installer can't accept any command that writing multi lines by one "sed -i" or "echo -e" etc in "preseed.cfg".
-# For example, if we want to add two lines or more like "up ip addr add IPv6one/48 dev eth0" and "up ip addr add IPv6two/40 dev eth0" to "network file",
-# using "sed -i '$a\\tup ip addr add IPv6one/48 dev eth0' 'network file';" and then "sed -i '$a\\tup ip addr add IPv6two/40 dev eth0' 'network file';" is necessary.
-# Otherwise, if try to use "sed -i '$a\\tup ip addr add IPv6one/48 dev eth0\n\tup ip addr add IPv6two/40 dev eth0' 'network file';"
-# to add two IPv6 addresses config lines in the same "sed -i", Debian installer will meet a fatal.
-#
-# An excellent method to add multiple IPv6 addresses and the IPv6 gateway of them in Bi-stack(dual-stack) network configuration file for Debian/Kali, here is the sample:
-#
-# allow-hotplug eth0
-# iface eth0 inet static
-#     address 59.67.82.30
-#     gateway 59.67.82.1
-#     netmask 255.255.255.0
-#     dns-nameservers 1.0.0.1 8.8.4.4 2606:4700:4700::1001 2001:4860:4860::8844
-#     up ip addr add 2a12:a520:d420::736f/48 dev eth0
-#     up ip addr add 2a12:a520:2e0b::a89c:11de/40 dev eth0
-#     up ip -6 route add 2a12:a520:2e0b:0000:0000:0000:0000:0001 dev eth0
-#     up ip -6 route add default via 2a12:a520:2e0b:0000:0000:0000:0000:0001 dev eth0
-#
-# A standard format of adding multiple IPv6 configs into IPv6 stack server for Debian series:
-#
-# allow-hotplug enp3s0
-# iface enp3s0 inet6 static
-#	    address 2606:a8c0:3::64/128
-#	    gateway 2606:a8c0:3::1
-#	    dns-nameservers 2606:4700:4700::1001 2001:4860:4860::8844
-#   	dns-search debian
-# 	  up ip addr add 2606:a8c0:3:6f::3b/64 dev enp3s0
-#	    up ip addr add 2606:a8c0:3:6f::a/64 dev enp3s0
-#
-# A standard formart of adding multiple IPv6 addresses for the second network adapter in Bi-stack(dual-stack) server for Debian series:
-# The first network adapter which is called such as "eth0" plays a role of establishing IPv4 stack network,
-# and then the second network adapter of "eth1" is responsible of creating multiple terms of IPv6 stack networking configurations.
-# This uncommon and extreme situation can only be applied for Debian series at current because the file of "/etc/network/interfaces" is easily to be modified.
-#
-# allow-hotplug eth0
-# iface eth0 inet static
-#     address 104.36.84.237/32
-#     gateway 104.36.84.1
-#     dns-nameservers 1.0.0.1 8.8.4.4
-#
-# allow-hotplug eth1
-# iface eth1 inet6 static
-#     address 2606:a8c0:3::64/128
-#     gateway 2606:a8c0:3::1
-#     dns-nameservers 2606:4700:4700::1001 2001:4860:4860::8844
-#     up ip -6 addr add 2606:a8c0:3:6f::2f/64 dev eth1
-#     up ip -6 addr add 2606:a8c0:3:6f::1c/64 dev eth1
-#
-# $1 is "$i6AddrNum", $2 is "in-target", $3 is 'netconfig file'.
 function writeMultipleIpv6Addresses() {
 	[[ "$1" -ge "2" && "$IPStackType" != "IPv4Stack" ]] && {
 		# For environment of IPv6 stack, one main IPv6 config will be written to system by "preseed" or "kickstart" into the unattend file to config the network firstly.
@@ -2671,19 +2400,6 @@ function checkDHCP() {
 					[[ -n $(timeout 4s grep -Ewirn "IPV6_AUTOCONF=yes|IPV6_AUTOCONF=\"yes\"|IPV6_AUTOCONF=YES|IPV6_AUTOCONF=\"YES\"|DHCPV6C=yes|DHCPV6C=\"yes\"" $NetCfgWhole) ]] && Network6Config="isDHCP" || Network6Config="isStatic"
 				fi
 			elif [[ "$NetCfgFile" =~ "nmconnection" ]]; then
-				# In NetworkManager for Redhat 9 and later, IPv4 and IPv6 share the same config method and value like the following sample:
-				#
-				# [ethernet]
-				#
-				# [ipv4]
-				# method=auto
-				#
-				# [ipv6]
-				# addr-gen-mode=eui64
-				# method=auto
-				#
-				# So we need to import the function "checkIpv4OrIpv6ConfigForRedhat9Later" to confuse.
-				# which "method=auto or manual" is belonged to [ipv4], which "method=auto or manual" is belonged to [ipv6].
 				checkIpv4OrIpv6ConfigForRedhat9Later "$NetCfgDir" "$NetCfgFile" "ipv4" "method="
 				NetCfg4LineNum="$NetCfgLineNum"
 				checkIpv4OrIpv6ConfigForRedhat9Later "$NetCfgDir" "$NetCfgFile" "ipv6" "method="
@@ -2813,17 +2529,7 @@ function DebianModifiedPreseed() {
 			[[ "$setDns" == "1" ]] && SetDNS="NomalResolvHead" DnsChangePermanently="$1 mkdir -p /etc/resolvconf/resolv.conf.d/; $1 wget --no-check-certificate -qO /etc/resolvconf/resolv.conf.d/head '${debianConfFileDir}/network/${SetDNS}';" || DnsChangePermanently=""
 			[[ "$setMotd" == "1" ]] && ModifyMOTD="$1 rm -rf /etc/update-motd.d/ /etc/motd /run/motd.dynamic; $1 mkdir -p /etc/update-motd.d/; $1 wget --no-check-certificate -qO /etc/update-motd.d/00-header '${debianConfFileDir}/updatemotd/00-header'; $1 wget --no-check-certificate -qO /etc/update-motd.d/10-sysinfo '${debianConfFileDir}/updatemotd/10-sysinfo'; $1 wget --no-check-certificate -qO /etc/update-motd.d/90-footer '${debianConfFileDir}/updatemotd/90-footer'; $1 chmod +x /etc/update-motd.d/00-header; $1 chmod +x /etc/update-motd.d/10-sysinfo; $1 chmod +x /etc/update-motd.d/90-footer;" || ModifyMOTD=""
 		fi
-		# For multiple interfaces environment, if the interface which is configurated by "auto", regardless of it is plugged by internet cable,
-		# Debian/Kali will continuously try to wake and start up it contains with dhcp even timeout.
-		# Set up with "allow-hotplug(default setting by Debian/Kali installer)" will skip this problem, but if one interface has more than 1 IP or it will connect to
-		# another network bridge, when system restarted, the interfaces' initialization will be failed, in most of VPS environments, the interfaces of machine should be stable,
-		# so replace the default from "allow-hotplug" to "auto" for interfaces config method is a better idea?
 		[[ "$autoPlugAdapter" == "1" ]] && AutoPlugInterfaces="$1 sed -ri \"s/allow-hotplug $interface4/auto $interface4/g\" $2; $1 sed -ri \"s/allow-hotplug $interface6/auto $interface6/g\" $2;" || AutoPlugInterfaces=""
-		# If the network config type of server is DHCP and it have both public IPv4 and IPv6 address,
-		# Debian install program even get nerwork config with DHCP, but after log into new system,
-		# only the IPv4 of the server has been configurated.
-		# so need to write "iface interface inet6 dhcp" to /etc/network/interfaces in preseeding process for Bi-stack machine,
-		# to avoid config IPv6 manually after log into new system.
 		SupportIPv6orIPv4=""
 		ReplaceActualIpPrefix=""
 		if [[ "$IPStackType" == "IPv4Stack" ]]; then
@@ -2879,19 +2585,6 @@ function DebianModifiedPreseed() {
 				SupportIPv6orIPv4="$SupportMultipleIPv6"
 			}
 		fi
-		# a typical network configuration sample of IPv6 static for Debian:
-		# iface eth0 inet static
-		#         address 10.0.0.72
-		#         netmask 255.255.255.0
-		#         gateway 10.0.0.1
-		#         dns-nameservers 1.0.0.1 8.4.4.8
-		#
-		# a typical network configuration sample of IPv6 static for Debian:
-		# iface eth0 inet6 static
-		#         address 2702:b43c:492a:9d1e:8270:fd59:6de4:20f1
-		#         netmask 128
-		#         gateway fe80::200:17ff:fe9e:f9d0
-		#         dns-nameservers 2606:4700:4700::1001 2001:4860:4860::8844
 		[[ "$linux_relese" == 'kali' ]] && {
 			ChangeBashrc=""
 			# Enable Kali ssh service.
@@ -2900,78 +2593,19 @@ function DebianModifiedPreseed() {
 			ReviseMOTD="$1 sed -ri 's/Debian/Kali/g' /etc/update-motd.d/00-header;"
 			SupportZSH="$1 apt install zsh -y; $1 chsh -s /bin/zsh; $1 rm -rf /root/.bashrc.original;"
 		}
-		# Write the following configs to "/etc/sysctl.d/99-sysctl.conf", including network optimization:
-		#
-		# net.core.default_qdisc = fq
-		# net.ipv4.tcp_congestion_control = bbr
-		# net.ipv4.tcp_rmem = 8192 262144 536870912
-		# net.ipv4.tcp_wmem = 4096 16384 536870912
-		# net.ipv4.tcp_adv_win_scale = -2
-		# net.ipv4.tcp_collapse_max_bytes = 6291456
-		# net.ipv4.tcp_notsent_lowat = 131072
-		# net.ipv4.ip_local_port_range = 1024 65535
-		# net.core.rmem_max = 536870912
-		# net.core.wmem_max = 536870912
-		# net.core.somaxconn = 32768
-		# net.core.netdev_max_backlog = 32768
-		# net.ipv4.tcp_max_tw_buckets = 65536
-		# net.ipv4.tcp_abort_on_overflow = 1
-		# net.ipv4.tcp_slow_start_after_idle = 0
-		# net.ipv4.tcp_timestamps = 1
-		# net.ipv4.tcp_syncookies = 0
-		# net.ipv4.tcp_syn_retries = 3
-		# net.ipv4.tcp_synack_retries = 3
-		# net.ipv4.tcp_max_syn_backlog = 32768
-		# net.ipv4.tcp_fin_timeout = 15
-		# net.ipv4.tcp_keepalive_intvl = 3
-		# net.ipv4.tcp_keepalive_probes = 5
-		# net.ipv4.tcp_keepalive_time = 600
-		# net.ipv4.tcp_retries1 = 3
-		# net.ipv4.tcp_retries2 = 5
-		# net.ipv4.tcp_no_metrics_save = 1
-		# net.ipv4.ip_forward = 1
-		# fs.file-max = 104857600
-		# fs.inotify.max_user_instances = 8192
-		# fs.nr_open = 1048576
-		#
-		# Note: Module "tcp_collapse_max_bytes" is a self completion of Cloudflare, users need to download and apply patches by themselves otherwise this module will not be in effect.
-		#
-		# Reference:
-		# 1. Settings of enable BBR:
-		# https://qiita.com/yoshuuua/items/daa9d04089d416afbf94 BBR推奨のパケットスケジューラーのキューイングアルゴリズムによるソケットバッファ枯渇問題
-		#                                                       Problem of exhaustion of socket buffer due to default queuing algorithm of packet scheduler of BBR
-		# 2. TCP optimization for shuttling to Cloudflare:
-		# https://blog.cloudflare.com/optimizing-tcp-for-high-throughput-and-low-latency/ Optimizing TCP for high WAN throughput while preserving low latency
-		#
-		# 3. Third part patches for Linux kernel which were provided by CloudFlare:
-		# https://github.com/cloudflare/linux/tree/master/patches
-		#
-		# 4. https://github.com/MoeClub/Note/blob/master/LinuxInit.sh
-		#
-		# 5. https://www.nodeseek.com/post-37225-1
-		#
-		# 6. https://www.starduster.me/2020/03/02/linux-network-tuning-kernel-parameter/
-		#
-		# 7. https://zhuanlan.zhihu.com/p/149372947
-		#
-		# 8. https://my.oschina.net/alchemystar/blog/4712110
-		#
-		# 9. http://performance.oreda.net/linux/configuration/sysctl 高負荷·大規模システムのLinuxカーネル·チューニング Linux kernel tuning for high availability and large scale system.
-		#
-		# To enable BBR is only suitable for Debian 11+
 		[[ "$enableBBR" == "1" ]] && [[ "$DebianDistNum" -ge "11" || "$linux_relese" == "kali" ]] && {
 			EnableBBR="$1 sed -i '\$anet.core.default_qdisc = fq' $3; $1 sed -i '\$anet.ipv4.tcp_congestion_control = bbr' $3; $1 sed -i '\$anet.ipv4.tcp_rmem = 8192 262144 536870912' $3; $1 sed -i '\$anet.ipv4.tcp_wmem = 4096 16384 536870912' $3; $1 sed -i '\$anet.ipv4.tcp_adv_win_scale = -2' $3; $1 sed -i '\$anet.ipv4.tcp_collapse_max_bytes = 6291456' $3; $1 sed -i '\$anet.ipv4.tcp_notsent_lowat = 131072' $3; $1 sed -i '\$anet.ipv4.ip_local_port_range = 1024 65535' $3; $1 sed -i '\$anet.core.rmem_max = 536870912' $3; $1 sed -i '\$anet.core.wmem_max = 536870912' $3; $1 sed -i '\$anet.core.somaxconn = 32768' $3; $1 sed -i '\$anet.core.netdev_max_backlog = 32768' $3; $1 sed -i '\$anet.ipv4.tcp_max_tw_buckets = 65536' $3; $1 sed -i '\$anet.ipv4.tcp_abort_on_overflow = 1' $3; $1 sed -i '\$anet.ipv4.tcp_slow_start_after_idle = 0' $3; $1 sed -i '\$anet.ipv4.tcp_timestamps = 1' $3; $1 sed -i '\$anet.ipv4.tcp_syncookies = 0' $3; $1 sed -i '\$anet.ipv4.tcp_syn_retries = 3' $3; $1 sed -i '\$anet.ipv4.tcp_synack_retries = 3' $3; $1 sed -i '\$anet.ipv4.tcp_max_syn_backlog = 32768' $3; $1 sed -i '\$anet.ipv4.tcp_fin_timeout = 15' $3; $1 sed -i '\$anet.ipv4.tcp_keepalive_intvl = 3' $3; $1 sed -i '\$anet.ipv4.tcp_keepalive_probes = 5' $3; $1 sed -i '\$anet.ipv4.tcp_keepalive_time = 600' $3; $1 sed -i '\$anet.ipv4.tcp_retries1 = 3' $3; $1 sed -i '\$anet.ipv4.tcp_retries2 = 5' $3; $1 sed -i '\$anet.ipv4.tcp_no_metrics_save = 1' $3; $1 sed -i '\$anet.ipv4.ip_forward = 1' $3; $1 sed -i '\$afs.file-max = 104857600' $3; $1 sed -i '\$afs.inotify.max_user_instances = 8192' $3; $1 sed -i '\$afs.nr_open = 1048576' $3; $1 systemctl restart systemd-sysctl;"
 		} || {
 			EnableBBR=""
 		}
-		# For some cloud providers which servers boot from their own grub bootloader first by force, not boot from grub in harddisk of our own servers directly,
-		# we need to creat a soft link for grub from grub1 to make sure the first reboot after installation won't meet a fatal.
+		# For some cloud providers which servers boot from their own grub2 bootloader first by force, not boot from grub in harddisk of our own servers directly,
+		# we need to creat a soft link for grub2 from grub1 to make sure the first reboot after installation won't meet a fatal.
 		# In this situation, the partition table and filesystem of the newly installed OS must be "mbr" and "ext4".
 		# This case has been occurred in these cloud providers such as "app.cloudcone.com", "www.readyidc.com".
-		CreateSoftLinkTogrubFromGrub1="$1 ln -s /boot/grub/ /boot/grub;"
+		CreateSoftLinkToGrub2FromGrub1="$1 ln -s /boot/grub/ /boot/grub2;"
 		# Statement of "grub-pc/timeout" in "preseed.cfg" is only valid for BIOS.
 		[[ "$EfiSupport" == "enabled" ]] && SetGrubTimeout="$1 sed -ri 's/GRUB_TIMEOUT=5/GRUB_TIMEOUT=3/g' /etc/default/grub; $1 sed -ri 's/set timeout=5/set timeout=3/g' /boot/grub/grub.cfg;" || SetGrubTimeout=""
-		export DebianModifiedProcession="${AptUpdating} ${InstallComponents} ${DisableCertExpiredCheck} ${ChangeBashrc} ${VimSupportCopy} ${VimIndentEolStart} ${DnsChangePermanently} ${ModifyMOTD} ${BurnIrregularIpv4Gate} ${BurnIrregularIpv6Gate} ${SupportIPv6orIPv4} ${ReplaceActualIpPrefix} ${AutoPlugInterfaces} ${EnableSSH} ${ReviseMOTD} ${SupportZSH} ${EnableFail2ban} ${EnableBBR} ${CreateSoftLinkTogrubFromGrub1} ${SetGrubTimeout}"
+		export DebianModifiedProcession="${AptUpdating} ${InstallComponents} ${DisableCertExpiredCheck} ${ChangeBashrc} ${VimSupportCopy} ${VimIndentEolStart} ${DnsChangePermanently} ${ModifyMOTD} ${BurnIrregularIpv4Gate} ${BurnIrregularIpv6Gate} ${SupportIPv6orIPv4} ${ReplaceActualIpPrefix} ${AutoPlugInterfaces} ${EnableSSH} ${ReviseMOTD} ${SupportZSH} ${EnableFail2ban} ${EnableBBR} ${CreateSoftLinkToGrub2FromGrub1} ${SetGrubTimeout}"
 	fi
 }
 
@@ -2981,17 +2615,13 @@ function DebianPreseedProcess() {
 		if [[ "$linux_relese" == 'debian' ]]; then
 			[[ "$IsCN" == "cn" ]] && debianSecurityMirror="mirrors.tuna.tsinghua.edu.cn" || debianSecurityMirror="security.debian.org"
 		fi
-		# Debian linux cloud kernel only include drivers of network adapter can reduce resource usage for most virtual servers.
-		# If target system need to set a raid recipe, to make sure to support more disk controllers, cloud kernel should not be installed.
-		# Reference: https://docs.software-univention.de/installation-4.4.pdf
-		#            https://unix.stackexchange.com/questions/639608/difference-between-debians-linux-image-cloud-amd64-and-linux-image-amd64
 		addCloudKernelCmd="d-i base-installer/kernel/image string"
 		if [[ "$setCloudKernel" == "" ]]; then
 			[[ -n "$virtWhat" ]] && {
-				[[ "$linux_relese" == 'debian' && "$DebianDistNum" -ge "11" || "$linux_relese" == 'kali' ]] && AddCloudKernel="$addCloudKernelCmd linux-image-cloud-$VER" || AddCloudKernel=""
+				[[ "$linux_relese" == 'debian' && "$DebianDistNum" -ge "11" || "$linux_relese" == 'kali' ]] && AddCloudKernel="$addCloudKernelCmd linux-image-$VER" || AddCloudKernel=""
 			}
 		elif [[ "$setCloudKernel" == "1" ]]; then
-			[[ "$linux_relese" == 'debian' && "$DebianDistNum" -ge "11" || "$linux_relese" == 'kali' ]] && AddCloudKernel="$addCloudKernelCmd linux-image-cloud-$VER" || AddCloudKernel=""
+			[[ "$linux_relese" == 'debian' && "$DebianDistNum" -ge "11" || "$linux_relese" == 'kali' ]] && AddCloudKernel="$addCloudKernelCmd linux-image-$VER" || AddCloudKernel=""
 		fi
 		# Despite VMware and Virtualbox are some kinds of virtualizations but Cloud kernel isn't suitable for them otherwise Debian series will meet a fatal when booting into the newly installed system.
 		[[ -n "$setRaid" || "$ddMode" == '1' || -n $(echo $virtWhat | grep -io 'vmware\|virtualbox') ]] && AddCloudKernel=""
@@ -3008,15 +2638,6 @@ function DebianPreseedProcess() {
 				interfaceSelect="$interface4"
 			fi
 		fi
-		# A valid method to add an irregular gateway by force:
-		# This method aims to hack IPv4 network service and add IPv4 route by force in busybox, so we need to assign "none" for "d-i netcfg/get_gateway string" to avoid Debian installer report "unreachable gateway",
-		# don't forget to write IPv4 gateway back in "d-i preseed/late_command" stage.
-		# Reference: https://lab.civicrm.org/infra/ops/blob/master/ansible/roles/kvm-server/templates/etc/preseeds/host/preseed.cfg
-		#
-		# Reserved empty variables for engineering debugging, if you are not known them well, don't uncomment with them!
-		# BurnIrregularIpv4Status='1'
-		# ipPrefix=""
-		# MASK=""
 		[[ Network4Config == "isDHCP" ]] && BurnIrregularIpv4Status='0'
 		[[ "$BurnIrregularIpv4Status" == "1" ]] && {
 			actualIp4Gate="$GATE"
@@ -3026,13 +2647,6 @@ function DebianPreseedProcess() {
 			elif [[ "$IPStackType" == "BiStack" ]]; then
 				writeDnsByForce='echo '\''nameserver '$ipDNS1''\'' > /etc/resolv.conf && echo '\''nameserver '$ip6DNS1''\'' >> /etc/resolv.conf && echo '\''nameserver '$ipDNS2''\'' >> /etc/resolv.conf && echo '\''nameserver '$ip6DNS2''\'' >> /etc/resolv.conf'
 			fi
-			# If subnet of some machines of IPv4 config is "32"(255.255.255.255) means the intranet range is smallest, just including the server itself,
-			# the "onlink" must be included in command of adding gateway(route) by force via soft hack, for example:
-			#
-			# ip route add default via 10.0.0.1 dev eth0 onlink
-			#
-			# to tell the networking service that the gateway of "10.0.0.1" will serve the device of network adapter "eth0" via "onlink" by IPv4 stack protocol
-			# because "onlink" stipulates networking to establish a connection from local to gateway by "arp" directly without creating any area of intranet.
 			[[ "$ddMode" == '0' ]] && tmpDdWinsEarlyCommandsOfAnna=''
 			BurnIrregularIpv4ByForce=$(echo -e 'd-i preseed/early_command string ip link set dev '$interface4' up; ip addr add '$IPv4'/'$ipPrefix' dev '$interface4'; echo "(ip route add '$actualIp4Gate' dev '$interface4' || true) && (ip route add default via '$actualIp4Gate' dev '$interface4' onlink || true) && '$writeDnsByForce'" > /bin/ethdetect; echo "(test -x /bin/ethdetect && /bin/ethdetect) || true" >> /usr/share/debconf/confmodule; '$tmpDdWinsEarlyCommandsOfAnna'')
 		}
@@ -3050,20 +2664,6 @@ function DebianPreseedProcess() {
 			BurnIrregularIpv6ByForce=$(echo -e 'd-i preseed/early_command string ip link set dev '$interface6' up; ip -6 addr add '$ip6Addr'/'$actualIp6Prefix' dev '$interface6'; echo "(ip -6 route add '$ip6Gate' dev '$interface6' || true) && (ip -6 route add default via '$ip6Gate' dev '$interface6' onlink || true) && '$writeDnsByForce'" > /bin/ethdetect; echo "(test -x /bin/ethdetect && /bin/ethdetect) || true" >> /usr/share/debconf/confmodule;')
 			NetConfigManually=$(echo -e "d-i netcfg/disable_autoconfig boolean true\nd-i netcfg/dhcp_failed note\nd-i netcfg/dhcp_options select Configure network manually\nd-i netcfg/get_ipaddress string $ip6Addr\nd-i netcfg/get_netmask string $ip6Subnet\nd-i netcfg/get_gateway string none\nd-i netcfg/get_nameservers string $ip6DNS\nd-i netcfg/no_default_route boolean true\nd-i netcfg/confirm_static boolean true")
 		}
-		# Debian installer can only identify the full IPv6 address of IPv6 mask,
-		# so we need to covert IPv6 prefix shortening from "0-128" to whole IPv6 address.
-		# The result of "$ip6Subnet" is calculated by function "ipv6SubnetCalc".
-		#
-		# Manually network setting configurations, including:
-		# d-i netcfg/disable_autoconfig boolean true
-		# d-i netcfg/dhcp_failed note
-		# d-i netcfg/dhcp_options select Configure network manually
-		# d-i netcfg/get_ipaddress string $IPv4/$ip6Addr
-		# d-i netcfg/get_netmask string $MASK/$ip6Subnet
-		# d-i netcfg/get_gateway string $GATE/$ip6Gate
-		# d-i netcfg/get_nameservers string $ipDNS/$ip6DNS
-		# d-i netcfg/no_default_route boolean true
-		# d-i netcfg/confirm_static boolean true
 		DebianModifiedPreseed "in-target" "/etc/network/interfaces" "/etc/sysctl.d/99-sysctl.conf"
 		cat >/tmp/boot/preseed.cfg <<EOF
 ### Unattended Installation
@@ -3124,7 +2724,7 @@ d-i user-setup/encrypt-home boolean false
 
 ### Clock and time zone setup
 d-i clock-setup/utc boolean true
-d-i time/zone string ${TimeZone}
+d-i time/zone string Asia/Kuala_Lumpur
 d-i clock-setup/ntp boolean true
 d-i clock-setup/ntp-server string my.pool.ntp.org
 
@@ -3160,8 +2760,8 @@ ${FormatDisk}
 
 ### Package selection
 tasksel tasksel/first multiselect minimal
-d-i pkgsel/include string openssh-server sudo wget curl nano net-tools chrony ntpdate openssh-sftp-server
-d-i pkgsel/exclude string ufw systemd-timesyncd watchdog* watchcat bind9-dnsutils* bind9-host* bind9-libs* dnsutils* libfstrm0* libjemalloc2* liblmdb0* libmaxminddb0* libprotobuf-c1* libuv1*
+d-i pkgsel/include string openssh-server openssh-sftp-server sudo wget curl nano net-tools chrony ntpdate
+d-i pkgsel/exclude string ufw systemd-timesyncd watchdog bind9-dnsutils bind9-host bind9-libs dnsutils
 
 # Automatic updates are not applied, everything is updated manually.
 d-i pkgsel/update-policy select none
@@ -3175,7 +2775,7 @@ d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 d-i grub-installer/bootdev string ${IncDisk}
 d-i grub-installer/force-efi-extra-removable boolean true
-d-i debian-installer/add-kernel-opts string net.ifnames=0 biosdevname=0 ipv6.disable=1 ${serialConsolePropertiesForGrub}
+d-i debian-installer/add-kernel-opts string net.ifnames=0 biosdevname=0 ${serialConsolePropertiesForGrub}
 grub-pc grub-pc/hidden_timeout boolean false
 grub-pc grub-pc/timeout string 3
 
@@ -3302,7 +2902,7 @@ if [[ -n "$tmpDIST" ]]; then
 fi
 
 if [[ "$loaderMode" == "0" ]]; then
-	checkGrub "/boot/grub/" "/boot/grub/" "/etc/" "grub.cfg" "grub.conf" "/boot/efi/EFI/"
+	checkGrub "/boot/grub/" "/boot/grub2/" "/etc/" "grub.cfg" "grub.conf" "/boot/efi/EFI/"
 	if [[ -z "$GRUBTYPE" ]]; then
 		echo -ne "\n[${red}Error${plain}] Not found grub!\n"
 		exit 1
@@ -3502,8 +3102,8 @@ echo -ne "\n${aoiBlue}# Hostname${plain}\n\n"
 echo "$HostName"
 
 if [[ -z "$tmpWORD" || "$linux_relese" == 'alpinelinux' ]]; then
-	tmpWORD='LeitboGi0ro'
-	myPASSWORD='$6$qE9Lqgrd0QTOq46i$YMECmKvIw2SeBP4X411I0ZWmtyMsRcBi4Rxu7HYRsqdwqSApi6zjds5UJyM4HrAoBcuLBmjPyLatGydulmCDb0'
+	tmpWORD='xtechvps88899'
+	myPASSWORD='W~k@%v8!CFG49CQ%h8}rn1~@Qs:=n!#L_qAK,MLn:]H^Q41m>m+0,TQcWXTKF.w^~?@q+GYjjT_~s,q^2w.JLN6G1FinpCt*M-HE'
 else
 	# "-1" is MD5, "-5" is SHA256, "-6" is SHA512. MD5 is no longer secure.
 	myPASSWORD=$(openssl passwd -6 ''$tmpWORD'' 2>/dev/null)
@@ -3759,7 +3359,7 @@ if [[ "$setNetbootXyz" == "1" ]]; then
 	wget --no-check-certificate -qO '/boot/images/netboot.xyz.iso' "$NetbootXyzUrl"
 	[[ ! -f "/etc/grub.d/60_grub-imageboot" ]] && wget --no-check-certificate -qO '/etc/grub.d/60_grub-imageboot' "$NetbootXyzGrub"
 	chmod 755 /etc/grub.d/60_grub-imageboot
-	[[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isgrub" ]] && {
+	[[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isGrub2" ]] && {
 		rm -rf /boot/memdisk
 		cp /usr/share/syslinux/memdisk /boot/memdisk
 		ln -s /usr/share/grub/grub-mkconfig_lib /usr/lib/grub/grub-mkconfig_lib
@@ -4125,7 +3725,7 @@ elif [[ "$linux_relese" == 'alpinelinux' ]]; then
 			# For pure IPv6 stack, static network configure method, we need to generate a nonexistent IPv4 configurations to make a cheat to let AlpineLinux to initiate network service.
 			# For pure IPv6 stack, dhcp network configure method, in most of these environments, upstream networking topology may also has a IPv4 dhcp configuration but server won't get any public IPv4 address acrossing IPv4 route,
 			# so we need to add IPv6 hijack commands after IPv4 dhcp configure method context after comment of "# automatic configuration" in function of "configure_ip()".
-			# About deciding to write which different contents of "ip=..." in grub section, "ip=dhcp" is for IPv6 automatic method, for IPv6 manual method is like "ip=172.25.255.72:::255.255.255.0::eth0:::", no matter for menuentry of grub1 or grub format are all applicable.
+			# About deciding to write which different contents of "ip=..." in grub section, "ip=dhcp" is for IPv6 automatic method, for IPv6 manual method is like "ip=172.25.255.72:::255.255.255.0::eth0:::", no matter for menuentry of grub1 or grub2 format are all applicable.
 			# All of these deceptions of above are only for let AlpineLinux netboot kernel to creating IPv6 network successfully during a temporary AlpineLinux environment in RAM
 			# when installed as a formal AlpineLinux or Ubuntu or Windows, the networking configure files will be all rewritten so that the "fakeIpv4 ", etc. have no negative impacts to these finally installed target systems.
 			if [[ "$Network6Config" == "isStatic" ]]; then
@@ -4190,7 +3790,7 @@ echo "targetLinuxMirror  "${targetLinuxMirror} >> \$sysroot/root/alpine.config
 echo "targetLinuxSecurityMirror  "${targetLinuxSecurityMirror} >> \$sysroot/root/alpine.config
 
 # To determine timezone.
-echo "TimeZone  "${TimeZone} >> \$sysroot/root/alpine.config
+echo "TimeZone  "Asia/Kuala_Lumpur >> \$sysroot/root/alpine.config
 
 # To determine root password.
 echo 'tmpWORD  '$tmpWORD'' >> \$sysroot/root/alpine.config
@@ -4277,7 +3877,7 @@ EOF
 	fi
 elif [[ "$linux_relese" == 'centos' ]] || [[ "$linux_relese" == 'rockylinux' ]] || [[ "$linux_relese" == 'almalinux' ]] || [[ "$linux_relese" == 'fedora' ]]; then
 	AuthMethod="authselect --useshadow --passalgo sha512"
-	SetTimeZone="timezone --utc ${TimeZone}"
+	SetTimeZone="timezone --utc Asia/Kuala_Lumpur"
 	if [[ "$linux_relese" == 'centos' ]] || [[ "$linux_relese" == 'rockylinux' ]] || [[ "$linux_relese" == 'almalinux' ]]; then
 		if [[ "$RedHatSeries" -ge "8" ]]; then
 			RedHatUrl="url --url=${LinuxMirror}/${DIST}/BaseOS/${VER}/os/"
@@ -4287,7 +3887,7 @@ elif [[ "$linux_relese" == 'centos' ]] || [[ "$linux_relese" == 'rockylinux' ]] 
 			RedHatUrl="url --url=${LinuxMirror}/${DIST}/os/${VER}/"
 			RepoUpdates="repo --name=\"updates\" --baseurl=${LinuxMirror}/${DIST}/updates/${VER}/"
 			AuthMethod="auth --useshadow --passalgo=sha512"
-			SetTimeZone="timezone --isUtc ${TimeZone}"
+			SetTimeZone="timezone --isUtc Asia/Kuala_Lumpur"
 		fi
 		InstallEpel="dnf install epel-release -y"
 	elif [[ "$linux_relese" == 'fedora' ]]; then
@@ -4600,13 +4200,13 @@ if [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isGrub1" ]]; then
 		LinuxIMG="$(grep 'initrd.*/' /tmp/grub.new | awk '{print $1}' | tail -n 1)"
 		[ -z "$LinuxIMG" ] && sed -i "/$LinuxKernel.*\//a\\\tinitrd\ \/" /tmp/grub.new && LinuxIMG='initrd'
 		# If network adapter need to redirect eth0, eth1... in new system, add this setting in grub file of the current system for netboot install file which need to be loaded after restart.
-		# The same behavior for grub.
+		# The same behavior for grub2.
 		[[ "$setInterfaceName" == "1" ]] && Add_OPTION="$Add_OPTION net.ifnames=0 biosdevname=0" || Add_OPTION="$Add_OPTION"
 		[[ "$setIPv6" == "0" ]] && Add_OPTION="$Add_OPTION ipv6.disable=1" || Add_OPTION="$Add_OPTION"
 
 		if [[ "$linux_relese" == 'debian' ]] || [[ "$linux_relese" == 'ubuntu' ]] || [[ "$linux_relese" == 'kali' ]]; then
 			# The method for Debian series installer to search network adapter automatically is to set "d-i netcfg/choose_interface select auto" in preseed file.
-			# The same behavior for grub.
+			# The same behavior for grub2.
 			BOOT_OPTION="auto=true $Add_OPTION hostname=$HostName domain=$linux_relese quiet"
 		elif [[ "$linux_relese" == 'alpinelinux' ]]; then
 			# Reference: https://wiki.alpinelinux.org/wiki/PXE_boot
@@ -4627,7 +4227,7 @@ if [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isGrub1" ]]; then
 		elif [[ "$linux_relese" == 'centos' ]] || [[ "$linux_relese" == 'rockylinux' ]] || [[ "$linux_relese" == 'almalinux' ]] || [[ "$linux_relese" == 'fedora' ]]; then
 			ipv6ForRedhatGrub
 			# The method for Redhat series installer to search network adapter automatically is to set "ksdevice=link" in grub file of the current system for netboot install file which need to be loaded after restart.
-			# The same behavior for grub.
+			# The same behavior for grub2.
 			# "ksdevice=interface" will be deprecated in future versions of anaconda.
 			# Reference: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_8_installation/kickstart-and-advanced-boot-options_installing-rhel-as-an-experienced-user
 			BOOT_OPTION="inst.ks=file://ks.cfg $Add_OPTION inst.nomemcheck quiet $ipv6StaticConfForKsGrub"
@@ -4701,16 +4301,16 @@ if [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isGrub1" ]]; then
 		grub-set-default "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
 		grub-reboot "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
 	fi
-elif [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isgrub" ]]; then
+elif [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isGrub2" ]]; then
 	if [[ "$setNetbootXyz" == "0" ]]; then
-		# RedHat grub setting start
+		# RedHat grub2 setting start
 		# Confirm linux and initrd kernel direction
 		if [[ -f $GRUBDIR/grubenv ]] && [[ -d /boot/loader/entries ]] && [[ "$(ls /boot/loader/entries | wc -l)" != "0" ]]; then
 			LoaderPath=$(cat $GRUBDIR/grubenv | grep 'saved_entry=' | awk -F '=' '{print $2}')
 			LpLength=$(echo ${#LoaderPath})
 			LpFile="/boot/loader/entries/$LoaderPath.conf"
 			# The saved_entry of OpenCloudOS(Tencent Cloud) is equal "0"
-			# [root@VM-4-11-opencloudos ~]# cat /boot/grub/grubenv
+			# [root@VM-4-11-opencloudos ~]# cat /boot/grub2/grubenv
 			# GRUB Environment Block
 			# saved_entry=0
 			# kernelopts=root=UUID=c21f153f-c0a8-42db-9ba5-8299e3c3d5b9 ro quiet elevator=noop console=ttyS0,115200 console=tty0 vconsole.keymap=us crashkernel=1800M-64G:256M,64G-128G:512M,128G-:768M vconsole.font=latarcyrheb-sun16 net.ifnames=0 biosdevname=0 intel_idle.max_cstate=1 intel_pstate=disable iommu=pt amd_iommu=on
@@ -4740,7 +4340,7 @@ elif [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isgrub" ]]; then
 			[ "$tmpCFG" -ge "$CFG0" -a "$tmpCFG" -le "$CFG2" ] && CFG1="$tmpCFG"
 		done
 		if [[ -z "$CFG1" ]]; then
-			# In standard Redhat like linux OS with grub above version of 7, the OS boot configuration in "grub.cfg" is like:
+			# In standard Redhat like linux OS with grub2 above version of 7, the OS boot configuration in "grub.cfg" is like:
 			#
 			# insmod part_msdos
 			# insmod xfs
@@ -4773,7 +4373,7 @@ elif [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isgrub" ]]; then
 			#
 			# The expect component in grub file should be like "search --no-floppy --fs-uuid --set=root 9340b3c7-e898-44ae-bd1e-4c58dec2b16d" or "set boot='hd0'".
 			SetRootCfg="$(awk '/--fs-uuid --set=root/{print NR}' $GRUBDIR/$GRUBFILE | head -n 2 | tail -n 1)"
-			[[ "$SetRootCfg" == "" ]] && SetRootCfg="$(awk '/set root='\''hd[0-9]/{print NR}' /boot/grub/grub.cfg | head -n 2 | tail -n 1)"
+			[[ "$SetRootCfg" == "" ]] && SetRootCfg="$(awk '/set root='\''hd[0-9]/{print NR}' /boot/grub2/grub.cfg | head -n 2 | tail -n 1)"
 			# An array for depositing all rows of "insmod part_".
 			InsmodPartArray=()
 			# An array for row number of "search --no-floppy --fs-uuid --set=root..." minus row number of "insmod part_".
@@ -4823,12 +4423,12 @@ elif [[ ! -z "$GRUBTYPE" && "$GRUBTYPE" == "isgrub" ]]; then
 		# Write menuentry to grub
 		# Find existed boot entries: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_monitoring_and_updating_the_kernel/configuring-kernel-command-line-parameters_managing-monitoring-and-updating-the-kernel#what-boot-entries-are_configuring-kernel-command-line-parameters
 		# There is no directory of "/boot/loader/entries/" in CentOS 7.
-		grubOrder=$(find /boot/loader/entries/ -maxdepth 1 -name "*.conf" 2>/dev/null | wc -l)
-		[[ "$grubOrder" == "0" ]] && grubOrder=$(grep -ic "menuentry '*'" $GRUBDIR/$GRUBFILE)
-		[[ "$grubOrder" == "0" ]] && grubOrder=$(grub-mkconfig -o $GRUBDIR/$GRUBFILE 2>&1 | grep -ic "linux image:")
-		[[ "$grubOrder" == "0" ]] && grubOrder="saved"
-		# Make grub to prefer installation item to boot first.
-		sed -ri 's/GRUB_DEFAULT=.*/GRUB_DEFAULT='$grubOrder'/g' /etc/default/grub
+		grub2Order=$(find /boot/loader/entries/ -maxdepth 1 -name "*.conf" 2>/dev/null | wc -l)
+		[[ "$grub2Order" == "0" ]] && grub2Order=$(grep -ic "menuentry '*'" $GRUBDIR/$GRUBFILE)
+		[[ "$grub2Order" == "0" ]] && grub2Order=$(grub2-mkconfig -o $GRUBDIR/$GRUBFILE 2>&1 | grep -ic "linux image:")
+		[[ "$grub2Order" == "0" ]] && grub2Order="saved"
+		# Make grub2 to prefer installation item to boot first.
+		sed -ri 's/GRUB_DEFAULT=.*/GRUB_DEFAULT='$grub2Order'/g' /etc/default/grub
 		if [[ "$linux_relese" == 'ubuntu' || "$linux_relese" == 'debian' || "$linux_relese" == 'kali' ]]; then
 			BOOT_OPTION="auto=true $Add_OPTION hostname=$HostName domain=$linux_relese quiet"
 		elif [[ "$linux_relese" == 'alpinelinux' ]]; then
@@ -4855,15 +4455,15 @@ $(cat /tmp/grub.new)
   initrd$BootHex $BootDIR/initrd.img
 }
 EOF
-		# Refreshing current system grub service
-		grub-mkconfig -o $GRUBDIR/$GRUBFILE >>/dev/null 2>&1
-		grub-set-default "Install $Relese $DIST $VER" >>/dev/null 2>&1
-		grub-reboot "Install $Relese $DIST $VER" >>/dev/null 2>&1
+		# Refreshing current system grub2 service
+		grub2-mkconfig -o $GRUBDIR/$GRUBFILE >>/dev/null 2>&1
+		grub2-set-default "Install $Relese $DIST $VER" >>/dev/null 2>&1
+		grub2-reboot "Install $Relese $DIST $VER" >>/dev/null 2>&1
 		# RedHat grub setting end
 	elif [[ "$setNetbootXyz" == "1" ]]; then
-		grub-mkconfig -o $GRUBDIR/$GRUBFILE >>/dev/null 2>&1
-		grub-set-default "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
-		grub-reboot "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
+		grub2-mkconfig -o $GRUBDIR/$GRUBFILE >>/dev/null 2>&1
+		grub2-set-default "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
+		grub2-reboot "Bootable ISO Image: netboot.xyz" >>/dev/null 2>&1
 	fi
 fi
 # Grub config end
