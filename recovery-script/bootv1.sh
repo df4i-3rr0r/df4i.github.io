@@ -1126,11 +1126,7 @@ function checkSys() {
 		chmod 600 /swapfile
 		mkswap /swapfile
 		swapon /swapfile
-		   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-		# Prefer to divert temporary data from RAM to virtual memory when there are 70% left and below of RAM to pull out a biggest effort to make sure the allowance of RAM is sufficient for installing dependence.
-		# In RAM that less and equal than 512 MB environment, the occupation of "yum / dnf" process could reach to nearly 49% at highest, the original value of swappiness in official templates of Simple Application Servers from Alibaba Cloud is "0".
-		# The default number of this value is "60" for a standard Linux distribution like Debian/Kali/Redhat series, it's "90" on Alpine.
-		# Mem:  446028(total)  216752(used)
+		echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
 		[[ $(cat /proc/sys/vm/swappiness | sed 's/[^0-9]//g') -lt "70" ]] && sysctl vm.swappiness=70
 	fi
 
