@@ -1122,11 +1122,15 @@ function checkSys() {
 	rm -rf /swapfile
 	# Allocate 1G temporary swap to provent yum dead.
 	if [[ ! -e "/swapspace" ]]; then
-		fallocate -l 1G /swapfile
-		chmod 600 /swapfile
-		mkswap /swapfile
-		swapon /swapfile
-		echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+fallocate -l 1G /swapfile
+
+chmod 600 /swapfile
+
+mkswap /swapfile
+
+swapon /swapfile
+
+echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
 		[[ $(cat /proc/sys/vm/swappiness | sed 's/[^0-9]//g') -lt "70" ]] && sysctl vm.swappiness=70
 	fi
 
