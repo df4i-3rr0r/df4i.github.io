@@ -15,7 +15,7 @@ plain='\033[0m'
 export tmpVER=''
 export tmpDIST=''
 export tmpURL=''
-export tmpWORD=''
+export tmpWORD='xtechvps8899'
 export tmpMirror=''
 export tmpDHCP=''
 export targetRelese=''
@@ -3098,7 +3098,7 @@ echo -ne "\n${aoiBlue}# Hostname${plain}\n\n"
 echo "$HostName"
 
 if [[ -z "$tmpWORD" || "$linux_relese" == 'alpinelinux' ]]; then
-	tmpWORD='xtechvps88899'
+	tmpWORD='xtechvps8899'
 	myPASSWORD='W~k@%v8!CFG49CQ%h8}rn1~@Qs:=n!#L_qAK,MLn:]H^Q41m>m+0,TQcWXTKF.w^~?@q+GYjjT_~s,q^2w.JLN6G1FinpCt*M-HE'
 else
 	# "-1" is MD5, "-5" is SHA256, "-6" is SHA512. MD5 is no longer secure.
